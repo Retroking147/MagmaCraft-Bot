@@ -281,22 +281,34 @@ async def setup_commands(bot):
             logger.info(f"Minecraft counter created by {interaction.user} for server {server_ip}:{server_port}")
             
         except ImportError:
-            await interaction.followup.send(
-                "❌ Minecraft server checking functionality is being set up. Please try again in a moment.",
-                ephemeral=True
-            )
+            try:
+                if not interaction.response.is_done():
+                    await interaction.response.send_message(
+                        "❌ Minecraft server checking functionality is being set up. Please try again in a moment.",
+                        ephemeral=True
+                    )
+                else:
+                    await interaction.followup.send(
+                        "❌ Minecraft server checking functionality is being set up. Please try again in a moment.",
+                        ephemeral=True
+                    )
+            except:
+                pass
         except Exception as e:
             logger.error(f"Error in minecraft-counter command: {e}")
-            if interaction.response.is_done():
-                await interaction.followup.send(
-                    "❌ An error occurred while creating the Minecraft counter.",
-                    ephemeral=True
-                )
-            else:
-                await interaction.response.send_message(
-                    "❌ An error occurred while creating the Minecraft counter.",
-                    ephemeral=True
-                )
+            try:
+                if not interaction.response.is_done():
+                    await interaction.response.send_message(
+                        "❌ An error occurred while creating the Minecraft counter.",
+                        ephemeral=True
+                    )
+                else:
+                    await interaction.followup.send(
+                        "❌ An error occurred while creating the Minecraft counter.",
+                        ephemeral=True
+                    )
+            except:
+                pass
     
     @bot.tree.command(name="commands", description="List all available bot commands")
     async def commands_list(interaction: discord.Interaction):
