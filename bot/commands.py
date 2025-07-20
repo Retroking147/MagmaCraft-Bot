@@ -6,7 +6,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from .utils import MessageUtils
-from .voice_bridge import VoiceBridge
+
 
 logger = logging.getLogger(__name__)
 
@@ -352,127 +352,9 @@ async def setup_commands(bot):
             logger.error(f"Error in commands command: {e}")
             await interaction.response.send_message("❌ An error occurred while listing commands.", ephemeral=True)
     
-    # Voice Bridge Commands
-    @bot.tree.command(name="voice-link", description="Link your Discord account to your Minecraft username for voice bridge")
-    @app_commands.describe(minecraft_username="Your exact Minecraft username (case-sensitive)")
-    async def voice_link(interaction: discord.Interaction, minecraft_username: str):
-        """Link Discord user to Minecraft username for voice bridge"""
-        try:
-            if not hasattr(bot, 'voice_bridge'):
-                bot.voice_bridge = VoiceBridge(bot)
-            
-            # Set up voice channel if it doesn't exist
-            await bot.voice_bridge.setup_voice_channel(interaction.guild)
-            
-            # Link the user
-            success = bot.voice_bridge.link_user(interaction.user.id, minecraft_username)
-            
-            if success:
-                embed = MessageUtils.create_success_embed(
-                    title="🔗 Voice Link Created!",
-                    description=f"Your Discord account is now linked to Minecraft username: **{minecraft_username}**"
-                )
-                embed.add_field(
-                    name="🎮 How it works",
-                    value="• When you join the Minecraft server, you'll be moved to the voice bridge channel\n• When you leave Minecraft, you'll be removed from the voice bridge\n• This allows cross-platform voice chat with Bedrock players",
-                    inline=False
-                )
-                embed.add_field(
-                    name="🎤 Voice Channel",
-                    value=f"Voice bridge: **{bot.voice_bridge.minecraft_voice_channel.mention}**",
-                    inline=False
-                )
-            else:
-                embed = MessageUtils.create_error_embed(
-                    title="❌ Link Failed",
-                    description="Failed to create voice link. Please try again."
-                )
-            
-            await interaction.response.send_message(embed=embed, ephemeral=True)
-            logger.info(f"Voice link command by {interaction.user}: {minecraft_username}")
-            
-        except Exception as e:
-            logger.error(f"Error in voice-link command: {e}")
-            await interaction.response.send_message("❌ An error occurred while creating voice link.", ephemeral=True)
+
     
-    @bot.tree.command(name="voice-unlink", description="Remove your Minecraft voice bridge link")
-    async def voice_unlink(interaction: discord.Interaction):
-        """Unlink Discord user from Minecraft voice bridge"""
-        try:
-            if not hasattr(bot, 'voice_bridge'):
-                bot.voice_bridge = VoiceBridge(bot)
-            
-            success = bot.voice_bridge.unlink_user(interaction.user.id)
-            
-            if success:
-                embed = MessageUtils.create_success_embed(
-                    title="🔗 Voice Link Removed",
-                    description="Your Discord account has been unlinked from the Minecraft voice bridge."
-                )
-            else:
-                embed = MessageUtils.create_error_embed(
-                    title="❌ No Link Found",
-                    description="You don't have an active voice bridge link to remove."
-                )
-            
-            await interaction.response.send_message(embed=embed, ephemeral=True)
-            logger.info(f"Voice unlink command by {interaction.user}")
-            
-        except Exception as e:
-            logger.error(f"Error in voice-unlink command: {e}")
-            await interaction.response.send_message("❌ An error occurred while removing voice link.", ephemeral=True)
-    
-    @bot.tree.command(name="voice-status", description="Check your voice bridge link status")
-    async def voice_status(interaction: discord.Interaction):
-        """Check voice bridge link status"""
-        try:
-            if not hasattr(bot, 'voice_bridge'):
-                bot.voice_bridge = VoiceBridge(bot)
-            
-            minecraft_username = bot.voice_bridge.get_minecraft_username(interaction.user.id)
-            stats = bot.voice_bridge.get_stats()
-            
-            if minecraft_username:
-                embed = MessageUtils.create_info_embed(
-                    title="🎤 Voice Bridge Status",
-                    description=f"Your Discord account is linked to: **{minecraft_username}**"
-                )
-                embed.add_field(
-                    name="🔗 Link Status",
-                    value="✅ Active voice bridge link",
-                    inline=True
-                )
-            else:
-                embed = MessageUtils.create_info_embed(
-                    title="🎤 Voice Bridge Status",
-                    description="Your Discord account is not linked to any Minecraft username."
-                )
-                embed.add_field(
-                    name="🔗 Link Status",
-                    value="❌ No active voice bridge link\nUse `/voice-link` to create one",
-                    inline=True
-                )
-            
-            embed.add_field(
-                name="📊 Bridge Statistics",
-                value=f"Total linked users: **{stats['total_links']}**\nVoice channel: **{'✅ Active' if stats['voice_channel_exists'] else '❌ Not set up'}**",
-                inline=False
-            )
-            
-            if stats['voice_channel_exists']:
-                channel = bot.voice_bridge.minecraft_voice_channel
-                embed.add_field(
-                    name="🎮 Voice Channel",
-                    value=f"{channel.mention} ({len(channel.members)} members connected)",
-                    inline=False
-                )
-            
-            await interaction.response.send_message(embed=embed, ephemeral=True)
-            logger.info(f"Voice status command by {interaction.user}")
-            
-        except Exception as e:
-            logger.error(f"Error in voice-status command: {e}")
-            await interaction.response.send_message("❌ An error occurred while checking voice status.", ephemeral=True)
+
     
     @bot.tree.command(name="send-commands", description="Send command list to a channel (Admin only)")
     @app_commands.describe(channel="Channel to send the command list to")
@@ -500,8 +382,7 @@ async def setup_commands(bot):
                     general_commands.append(cmd_text)
                 elif cmd.name in ['minecraft-counter']:
                     admin_commands.append(cmd_text)
-                elif cmd.name in ['voice-link', 'voice-unlink', 'voice-status']:
-                    voice_commands.append(cmd_text)
+
                 elif cmd.name in ['say', 'embed']:
                     admin_commands.append(cmd_text)
                 else:
@@ -514,12 +395,7 @@ async def setup_commands(bot):
                     inline=False
                 )
             
-            if voice_commands:
-                embed.add_field(
-                    name="🎤 Voice Bridge Commands",
-                    value="\n".join(voice_commands),
-                    inline=False
-                )
+
             
             if admin_commands:
                 embed.add_field(
@@ -619,4 +495,4 @@ async def setup_commands(bot):
                 await interaction.response.send_message("❌ An error occurred while forcing update.", ephemeral=True)
     
     logger.info("All slash commands have been set up")
-    logger.info("Commands registered: ping, hello, info, say, embed, minecraft-counter, commands, voice-link, voice-unlink, voice-status, send-commands, reset-counter, force-update")
+    logger.info("Commands registered: ping, hello, info, say, embed, minecraft-counter, commands, send-commands, reset-counter, force-update")

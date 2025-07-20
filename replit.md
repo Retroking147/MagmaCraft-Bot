@@ -139,13 +139,9 @@ The architecture prioritizes simplicity and modularity, making it easy to extend
 - **Clean Category-Friendly Names**: Status shows just "🟢 Online" without extra text for category organization
 - **New Command**: `/minecraft-counter` with customizable channel naming and automatic server monitoring
 - **Stability Enhancement**: Added 2-minute buffer period before switching back to slow updates to handle brief disconnections
-- **Voice Bridge System**: Added parallel voice communication system for cross-platform play between Java and Bedrock players
-- **Voice Commands**: `/voice-link`, `/voice-unlink`, and `/voice-status` for managing Discord-Minecraft voice connections
 - **Admin Restrictions**: Made `/minecraft-counter` command admin-only using `@app_commands.default_permissions(administrator=True)`
 - **Command List Feature**: Added `/send-commands` admin command to send organized command lists to channels
 - **Ephemeral Responses**: Commands used in channels with "command" + warning symbols now show responses only to user and admins
 - **Counter Management**: Added `/reset-counter` and `/force-update` admin commands for counter troubleshooting and manual control
-- **Automatic Voice Bridge**: Enhanced voice bridge to automatically connect/disconnect users when joining/leaving Minecraft server
-- **Player Detection System**: Bot now monitors Minecraft server for player join/leave events and manages Discord voice accordingly
-- **Smart Voice Management**: Automatically moves users to voice bridge channel when they join Minecraft, sends notifications if not in voice
-- **Auto-Disconnect**: Automatically removes users from voice bridge when they leave Minecraft server with notification DMs
+- **Bug Fixes**: Fixed minecraft-counter command to handle 4-value server status returns correctly
+- **Voice System Removal**: Completely removed automatic voice bridge system due to functionality issues - bot now focuses on core counter and command features

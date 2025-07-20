@@ -9,7 +9,7 @@ from discord.ext import commands, tasks
 from .commands import setup_commands
 from .events import setup_events
 from .minecraft_utils import update_minecraft_counter_channel
-from .voice_bridge import VoiceBridge
+
 
 logger = logging.getLogger(__name__)
 
@@ -40,11 +40,7 @@ class DiscordBot(commands.Bot):
         self.last_empty_time = None  # Track when server became empty
         self.cooldown_seconds = 120  # 2-minute cooldown before switching back to 30s
         
-        # Voice bridge initialization
-        self.voice_bridge = None
-        self.previous_player_list = set()  # Track player join/leave events
-        self.minecraft_server_ip = "104.1.212.88"  # Default server to monitor
-        self.minecraft_server_port = 25565
+
         
     async def setup_hook(self):
         """Called when the bot is starting up"""
@@ -54,8 +50,7 @@ class DiscordBot(commands.Bot):
         await setup_commands(self)
         setup_events(self)
         
-        # Initialize voice bridge
-        self.voice_bridge = VoiceBridge(self)
+
         
         # Sync slash commands
         try:
@@ -98,16 +93,12 @@ class DiscordBot(commands.Bot):
         # Track if any server has active players
         any_players_online = False
         
-        # Update each counter channel and check for player changes
-        current_players = set()
-        
+        # Update each counter channel
         for channel_id, server_info in list(self.minecraft_counters.items()):
             try:
-                success, has_players, server_players = await update_minecraft_counter_channel(self, channel_id, server_info)
+                success, has_players, _ = await update_minecraft_counter_channel(self, channel_id, server_info)
                 if success and has_players:
                     any_players_online = True
-                    # Add current players to the set
-                    current_players.update(server_players)
                 elif not success:
                     # Channel might have been deleted, remove from tracking
                     channel = self.get_channel(channel_id)
@@ -116,11 +107,6 @@ class DiscordBot(commands.Bot):
                         del self.minecraft_counters[channel_id]
             except Exception as e:
                 logger.error(f"Error updating Minecraft counter {channel_id}: {e}")
-        
-        # Handle voice bridge automation if we have player data
-        if self.voice_bridge and current_players != self.previous_player_list:
-            await self._handle_player_changes(current_players)
-            self.previous_player_list = current_players.copy()
         
         # Adjust update interval based on player activity with cooldown system
         current_time = time.time()
@@ -153,30 +139,7 @@ class DiscordBot(commands.Bot):
                 if remaining % 45 == 0 and remaining > 0:  # Log every 45 seconds during grace period
                     logger.info(f"Grace period active - {remaining}s remaining at 15-second updates")
     
-    async def _handle_player_changes(self, current_players: set):
-        """Handle player join/leave events for voice bridge automation"""
-        try:
-            if not self.voice_bridge:
-                return
-            
-            # Find players who joined and left
-            players_joined = current_players - self.previous_player_list
-            players_left = self.previous_player_list - current_players
-            
-            # Handle each guild
-            for guild in self.guilds:
-                # Process players who joined
-                for player_name in players_joined:
-                    logger.info(f"Player {player_name} joined Minecraft server")
-                    await self.voice_bridge.handle_minecraft_player_join(guild, player_name)
-                
-                # Process players who left
-                for player_name in players_left:
-                    logger.info(f"Player {player_name} left Minecraft server")
-                    await self.voice_bridge.handle_minecraft_player_leave(guild, player_name)
-                    
-        except Exception as e:
-            logger.error(f"Error handling player changes: {e}")
+
     
     @update_minecraft_counters.before_loop
     async def before_update_minecraft_counters(self):
