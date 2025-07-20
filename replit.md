@@ -135,6 +135,7 @@ The architecture prioritizes simplicity and modularity, making it easy to extend
 ### July 20, 2025
 - **Added Minecraft Server Counter Feature**: Bot can now create and manage channels that display real-time Minecraft server status
 - **Separate Channel System**: Creates two channels - status (🟢 Online/🔴 Offline) and player count (👤 X/Y Players)  
-- **Smart Dynamic Updates**: 15-second updates when players are online, 30-second updates when empty
+- **Smart Dynamic Updates with Cooldown**: 15-second updates when players are online, 30-second updates when empty, with 120-second cooldown to prevent rapid switching
 - **Clean Category-Friendly Names**: Status shows just "🟢 Online" without extra text for category organization
 - **New Command**: `/minecraft-counter` with customizable channel naming and automatic server monitoring
+- **Stability Enhancement**: Added 2-minute buffer period before switching back to slow updates to handle brief disconnections

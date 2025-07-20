@@ -266,8 +266,8 @@ async def setup_commands(bot):
                 inline=True
             )
             embed.add_field(
-                name="🔄 Updates",
-                value="Channels update every 30 seconds (15 seconds when players are online).",
+                name="🔄 Smart Updates",
+                value="• **No players**: 30-second intervals\n• **Players online**: 15-second intervals\n• **Cooldown**: 2-minute delay before switching back to slow updates",
                 inline=False
             )
             embed.add_field(
