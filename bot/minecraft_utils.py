@@ -160,13 +160,16 @@ async def update_minecraft_counter_channel(bot, channel_id: int, server_info: di
         bot: Discord bot instance
         channel_id: ID of the channel to update
         server_info: Dictionary containing server connection info
+        
+    Returns:
+        Tuple[bool, bool]: (success, has_players)
     """
     try:
         # Get channel
         channel = bot.get_channel(channel_id)
         if not channel:
             logger.warning(f"Could not find channel {channel_id} for Minecraft counter")
-            return False
+            return False, False
         
         # Check server status
         player_count, max_players, is_online = await check_minecraft_server(
@@ -202,8 +205,10 @@ async def update_minecraft_counter_channel(bot, channel_id: int, server_info: di
             await channel.edit(name=formatted_name, reason="Minecraft player count update")
             logger.info(f"Updated Minecraft counter channel: {formatted_name}")
         
-        return True
+        # Return success and whether there are active players
+        has_players = is_online and player_count > 0
+        return True, has_players
         
     except Exception as e:
         logger.error(f"Error updating Minecraft counter channel {channel_id}: {e}")
-        return False
+        return False, False

@@ -129,3 +129,12 @@ Preferred communication style: Simple, everyday language.
 - **Error Handling**: More verbose error messages in development mode
 
 The architecture prioritizes simplicity and modularity, making it easy to extend the bot with additional commands and features while maintaining clean separation of concerns.
+
+## Recent Changes: Latest modifications with dates
+
+### July 20, 2025
+- **Added Minecraft Server Counter Feature**: Bot can now create and manage channels that display real-time Minecraft server status
+- **Separate Channel System**: Creates two channels - status (🟢 Online/🔴 Offline) and player count (👤 X/Y Players)  
+- **Smart Dynamic Updates**: 15-second updates when players are online, 30-second updates when empty
+- **Clean Category-Friendly Names**: Status shows just "🟢 Online" without extra text for category organization
+- **New Command**: `/minecraft-counter` with customizable channel naming and automatic server monitoring

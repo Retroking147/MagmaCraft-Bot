@@ -34,6 +34,7 @@ class DiscordBot(commands.Bot):
         
         # Minecraft counter storage
         self.minecraft_counters = {}
+        self.has_active_players = False
         
     async def setup_hook(self):
         """Called when the bot is starting up"""
@@ -75,17 +76,22 @@ class DiscordBot(commands.Bot):
     
     @tasks.loop(seconds=30)
     async def update_minecraft_counters(self):
-        """Update all Minecraft counter channels every 30 seconds"""
+        """Update all Minecraft counter channels with dynamic intervals"""
         if not self.minecraft_counters:
             return
         
         logger.info(f"Updating {len(self.minecraft_counters)} Minecraft counter channels")
         
+        # Track if any server has active players
+        any_players_online = False
+        
         # Update each counter channel
         for channel_id, server_info in list(self.minecraft_counters.items()):
             try:
-                success = await update_minecraft_counter_channel(self, channel_id, server_info)
-                if not success:
+                success, has_players = await update_minecraft_counter_channel(self, channel_id, server_info)
+                if success and has_players:
+                    any_players_online = True
+                elif not success:
                     # Channel might have been deleted, remove from tracking
                     channel = self.get_channel(channel_id)
                     if not channel:
@@ -93,6 +99,18 @@ class DiscordBot(commands.Bot):
                         del self.minecraft_counters[channel_id]
             except Exception as e:
                 logger.error(f"Error updating Minecraft counter {channel_id}: {e}")
+        
+        # Adjust update interval based on player activity
+        if any_players_online != self.has_active_players:
+            self.has_active_players = any_players_online
+            if any_players_online:
+                # Players online - switch to 15 second updates
+                logger.info("Players detected online - switching to 15-second updates")
+                self.update_minecraft_counters.change_interval(seconds=15)
+            else:
+                # No players online - switch back to 30 second updates
+                logger.info("No players online - switching to 30-second updates")
+                self.update_minecraft_counters.change_interval(seconds=30)
     
     @update_minecraft_counters.before_loop
     async def before_update_minecraft_counters(self):
