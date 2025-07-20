@@ -174,7 +174,7 @@ async def setup_commands(bot):
         interaction: discord.Interaction, 
         server_ip: str, 
         server_port: int = 25565,
-        status_channel_name: str = "{status} Server Status",
+        status_channel_name: str = "{status}",
         count_channel_name: str = "👤 {count} Players"
     ):
         """Create a voice channel that displays Minecraft server player count"""
