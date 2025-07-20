@@ -2,6 +2,7 @@
 Minecraft Server Utilities
 """
 import asyncio
+import discord
 import logging
 import socket
 import struct
@@ -202,8 +203,16 @@ async def update_minecraft_counter_channel(bot, channel_id: int, server_info: di
         
         # Update channel name if it's different
         if channel.name != formatted_name:
-            await channel.edit(name=formatted_name, reason="Minecraft player count update")
-            logger.info(f"Updated Minecraft counter channel: {formatted_name}")
+            try:
+                await channel.edit(name=formatted_name, reason="Minecraft player count update")
+                logger.info(f"Updated Minecraft counter channel: {formatted_name}")
+            except discord.HTTPException as e:
+                if e.status == 429:  # Rate limited
+                    logger.warning(f"Rate limited updating channel {channel_id}, will retry next cycle")
+                else:
+                    logger.error(f"HTTP error updating channel {channel_id}: {e}")
+            except Exception as e:
+                logger.error(f"Error updating channel {channel_id}: {e}")
         
         # Return success and whether there are active players
         has_players = is_online and player_count > 0

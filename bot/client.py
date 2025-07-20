@@ -107,12 +107,15 @@ class DiscordBot(commands.Bot):
         current_time = time.time()
         
         if any_players_online:
-            # Players are online - use fast updates and reset cooldown
-            if not self.has_active_players or self.last_empty_time:
+            # Players are online - use fast updates and reset grace period
+            if not self.has_active_players:
                 self.has_active_players = True
-                self.last_empty_time = None
                 logger.info("Players detected online - switching to 15-second updates")
                 self.update_minecraft_counters.change_interval(seconds=15)
+            elif self.last_empty_time:
+                # Player rejoined during grace period - cancel grace period
+                logger.info("Player rejoined during grace period - cancelling grace period")
+                self.last_empty_time = None
         else:
             # No players online
             if self.has_active_players and not self.last_empty_time:
