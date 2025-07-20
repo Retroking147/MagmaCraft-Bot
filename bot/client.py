@@ -4,9 +4,10 @@ Discord Bot Client
 import logging
 import os
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 from .commands import setup_commands
 from .events import setup_events
+from .minecraft_utils import update_minecraft_counter_channel
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,9 @@ class DiscordBot(commands.Bot):
         self.initial_extensions = []
         self.guild_id = os.getenv('GUILD_ID')
         
+        # Minecraft counter storage
+        self.minecraft_counters = {}
+        
     async def setup_hook(self):
         """Called when the bot is starting up"""
         logger.info("Setting up bot...")
@@ -52,6 +56,10 @@ class DiscordBot(commands.Bot):
                 logger.info(f"Synced {len(synced)} commands globally")
         except Exception as e:
             logger.error(f"Failed to sync commands: {e}")
+        
+        # Start Minecraft counter update task
+        if not self.update_minecraft_counters.is_running():
+            self.update_minecraft_counters.start()
     
     async def on_ready(self):
         """Called when bot is ready"""
@@ -64,6 +72,32 @@ class DiscordBot(commands.Bot):
             name="for slash commands"
         )
         await self.change_presence(activity=activity)
+    
+    @tasks.loop(minutes=5)
+    async def update_minecraft_counters(self):
+        """Update all Minecraft counter channels every 5 minutes"""
+        if not self.minecraft_counters:
+            return
+        
+        logger.info(f"Updating {len(self.minecraft_counters)} Minecraft counter channels")
+        
+        # Update each counter channel
+        for channel_id, server_info in list(self.minecraft_counters.items()):
+            try:
+                success = await update_minecraft_counter_channel(self, channel_id, server_info)
+                if not success:
+                    # Channel might have been deleted, remove from tracking
+                    channel = self.get_channel(channel_id)
+                    if not channel:
+                        logger.info(f"Removing deleted Minecraft counter channel {channel_id}")
+                        del self.minecraft_counters[channel_id]
+            except Exception as e:
+                logger.error(f"Error updating Minecraft counter {channel_id}: {e}")
+    
+    @update_minecraft_counters.before_loop
+    async def before_update_minecraft_counters(self):
+        """Wait for bot to be ready before starting the update loop"""
+        await self.wait_until_ready()
     
     async def on_error(self, event, *args, **kwargs):
         """Global error handler"""

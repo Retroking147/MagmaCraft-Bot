@@ -163,4 +163,108 @@ async def setup_commands(bot):
             logger.error(f"Error in embed command: {e}")
             await interaction.response.send_message("❌ An error occurred while creating the embed.", ephemeral=True)
     
+    @bot.tree.command(name="minecraft-counter", description="Create a channel that shows Minecraft server player count")
+    @app_commands.describe(
+        server_ip="Your Minecraft server IP address",
+        server_port="Server port (default: 25565)",
+        channel_name="Name format for the channel (use {count} for player count)"
+    )
+    async def minecraft_counter(
+        interaction: discord.Interaction, 
+        server_ip: str, 
+        server_port: int = 25565,
+        channel_name: str = "Players Online: {count}"
+    ):
+        """Create a voice channel that displays Minecraft server player count"""
+        try:
+            # Check if user has manage channels permission
+            if not interaction.user.guild_permissions.manage_channels:
+                await interaction.response.send_message(
+                    "❌ You need 'Manage Channels' permission to use this command.",
+                    ephemeral=True
+                )
+                return
+            
+            # Check if bot has manage channels permission
+            if not interaction.guild.me.guild_permissions.manage_channels:
+                await interaction.response.send_message(
+                    "❌ I need 'Manage Channels' permission to create channels.",
+                    ephemeral=True
+                )
+                return
+            
+            await interaction.response.defer()
+            
+            # Import minecraft server status checker
+            from .minecraft_utils import check_minecraft_server
+            
+            # Check if server is reachable
+            player_count, max_players, is_online = await check_minecraft_server(server_ip, server_port)
+            
+            if not is_online:
+                await interaction.followup.send(
+                    f"❌ Could not connect to Minecraft server `{server_ip}:{server_port}`. "
+                    "Please check the IP address and port.",
+                    ephemeral=True
+                )
+                return
+            
+            # Format channel name with current player count
+            formatted_name = channel_name.format(count=f"{player_count}/{max_players}")
+            
+            # Create voice channel
+            channel = await interaction.guild.create_voice_channel(
+                name=formatted_name,
+                reason=f"Minecraft player counter created by {interaction.user}"
+            )
+            
+            # Store server info in bot's memory for updates
+            if not hasattr(bot, 'minecraft_counters'):
+                bot.minecraft_counters = {}
+            
+            bot.minecraft_counters[channel.id] = {
+                'server_ip': server_ip,
+                'server_port': server_port,
+                'channel_name_template': channel_name,
+                'guild_id': interaction.guild.id
+            }
+            
+            # Create success embed
+            embed = MessageUtils.create_success_embed(
+                title="🎮 Minecraft Counter Created!",
+                description=f"Created channel: **{formatted_name}**"
+            )
+            embed.add_field(
+                name="📊 Server Status",
+                value=f"Server: `{server_ip}:{server_port}`\nPlayers: `{player_count}/{max_players}`",
+                inline=False
+            )
+            embed.add_field(
+                name="🔄 Updates",
+                value="The channel name will update automatically every 5 minutes.",
+                inline=False
+            )
+            embed.set_footer(text=f"Channel ID: {channel.id}")
+            
+            await interaction.followup.send(embed=embed)
+            logger.info(f"Minecraft counter created by {interaction.user} for server {server_ip}:{server_port}")
+            
+        except ImportError:
+            await interaction.followup.send(
+                "❌ Minecraft server checking functionality is being set up. Please try again in a moment.",
+                ephemeral=True
+            )
+        except Exception as e:
+            logger.error(f"Error in minecraft-counter command: {e}")
+            if interaction.response.is_done():
+                await interaction.followup.send(
+                    "❌ An error occurred while creating the Minecraft counter.",
+                    ephemeral=True
+                )
+            else:
+                await interaction.response.send_message(
+                    "❌ An error occurred while creating the Minecraft counter.",
+                    ephemeral=True
+                )
+    
     logger.info("All slash commands have been set up")
