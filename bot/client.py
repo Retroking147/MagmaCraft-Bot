@@ -73,9 +73,9 @@ class DiscordBot(commands.Bot):
         )
         await self.change_presence(activity=activity)
     
-    @tasks.loop(seconds=120)
+    @tasks.loop(seconds=30)
     async def update_minecraft_counters(self):
-        """Update all Minecraft counter channels every 120 seconds"""
+        """Update all Minecraft counter channels every 30 seconds"""
         if not self.minecraft_counters:
             return
         

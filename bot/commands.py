@@ -267,7 +267,7 @@ async def setup_commands(bot):
             )
             embed.add_field(
                 name="🔄 Updates",
-                value="Both channels update automatically every 2 minutes.",
+                value="Both channels update automatically every 30 seconds.",
                 inline=False
             )
             embed.add_field(
