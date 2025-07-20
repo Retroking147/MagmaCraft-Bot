@@ -9,6 +9,7 @@ from discord.ext import commands, tasks
 from .commands import setup_commands
 from .events import setup_events
 from .minecraft_utils import update_minecraft_counter_channel
+from .voice_bridge import VoiceBridge
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +40,10 @@ class DiscordBot(commands.Bot):
         self.last_empty_time = None  # Track when server became empty
         self.cooldown_seconds = 120  # 2-minute cooldown before switching back to 30s
         
+        # Voice bridge initialization
+        self.voice_bridge = None
+        self.previous_player_list = set()  # Track player join/leave events
+        
     async def setup_hook(self):
         """Called when the bot is starting up"""
         logger.info("Setting up bot...")
@@ -46,6 +51,9 @@ class DiscordBot(commands.Bot):
         # Set up commands and events
         await setup_commands(self)
         setup_events(self)
+        
+        # Initialize voice bridge
+        self.voice_bridge = VoiceBridge(self)
         
         # Sync slash commands
         try:

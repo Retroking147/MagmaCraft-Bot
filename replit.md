@@ -139,3 +139,5 @@ The architecture prioritizes simplicity and modularity, making it easy to extend
 - **Clean Category-Friendly Names**: Status shows just "🟢 Online" without extra text for category organization
 - **New Command**: `/minecraft-counter` with customizable channel naming and automatic server monitoring
 - **Stability Enhancement**: Added 2-minute buffer period before switching back to slow updates to handle brief disconnections
+- **Voice Bridge System**: Added parallel voice communication system for cross-platform play between Java and Bedrock players
+- **Voice Commands**: `/voice-link`, `/voice-unlink`, and `/voice-status` for managing Discord-Minecraft voice connections
