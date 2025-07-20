@@ -171,6 +171,7 @@ async def setup_commands(bot):
         status_channel_name="Name format for status channel (use {status} for online/offline)",
         count_channel_name="Name format for player count channel (use {count} for player count)"
     )
+    @app_commands.default_permissions(administrator=True)
     async def minecraft_counter(
         interaction: discord.Interaction, 
         server_ip: str, 
@@ -462,5 +463,75 @@ async def setup_commands(bot):
             logger.error(f"Error in voice-status command: {e}")
             await interaction.response.send_message("❌ An error occurred while checking voice status.", ephemeral=True)
     
+    @bot.tree.command(name="send-commands", description="Send command list to a channel (Admin only)")
+    @app_commands.describe(channel="Channel to send the command list to")
+    @app_commands.default_permissions(administrator=True)
+    async def send_commands(interaction: discord.Interaction, channel: discord.TextChannel):
+        """Send command list to specified channel"""
+        try:
+            commands = bot.tree.get_commands()
+            
+            embed = MessageUtils.create_info_embed(
+                title="🤖 MagmaCraft Bot Commands",
+                description="Here are all available slash commands for the server:"
+            )
+            
+            # Group commands by category
+            general_commands = []
+            minecraft_commands = []
+            voice_commands = []
+            admin_commands = []
+            
+            for cmd in commands:
+                cmd_text = f"**`/{cmd.name}`** - {cmd.description}"
+                
+                if cmd.name in ['ping', 'hello', 'info', 'commands']:
+                    general_commands.append(cmd_text)
+                elif cmd.name in ['minecraft-counter']:
+                    admin_commands.append(cmd_text)
+                elif cmd.name in ['voice-link', 'voice-unlink', 'voice-status']:
+                    voice_commands.append(cmd_text)
+                elif cmd.name in ['say', 'embed']:
+                    admin_commands.append(cmd_text)
+                else:
+                    general_commands.append(cmd_text)
+            
+            if general_commands:
+                embed.add_field(
+                    name="🔧 General Commands",
+                    value="\n".join(general_commands),
+                    inline=False
+                )
+            
+            if voice_commands:
+                embed.add_field(
+                    name="🎤 Voice Bridge Commands",
+                    value="\n".join(voice_commands),
+                    inline=False
+                )
+            
+            if admin_commands:
+                embed.add_field(
+                    name="🛡️ Admin Commands",
+                    value="\n".join(admin_commands),
+                    inline=False
+                )
+            
+            embed.add_field(
+                name="📊 Server Monitoring",
+                value="The bot automatically monitors your Minecraft server with smart dynamic updates and provides real-time status channels.",
+                inline=False
+            )
+            
+            embed.set_footer(text="Use / followed by the command name to use them")
+            
+            await channel.send(embed=embed)
+            await interaction.response.send_message(f"✅ Command list sent to {channel.mention}", ephemeral=True)
+            logger.info(f"Command list sent to #{channel.name} by {interaction.user}")
+            
+        except Exception as e:
+            logger.error(f"Error in send-commands command: {e}")
+            await interaction.response.send_message("❌ An error occurred while sending command list.", ephemeral=True)
+    
     logger.info("All slash commands have been set up")
-    logger.info("Commands registered: ping, hello, info, say, embed, minecraft-counter, commands, voice-link, voice-unlink, voice-status")
+    logger.info("Commands registered: ping, hello, info, say, embed, minecraft-counter, commands, voice-link, voice-unlink, voice-status, send-commands")
