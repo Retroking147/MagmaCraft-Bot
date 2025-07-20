@@ -544,5 +544,76 @@ async def setup_commands(bot):
             logger.error(f"Error in send-commands command: {e}")
             await interaction.response.send_message("❌ An error occurred while sending command list.", ephemeral=True)
     
+    @bot.tree.command(name="reset-counter", description="Reset all Minecraft counter channels (Admin only)")
+    @app_commands.default_permissions(administrator=True)
+    async def reset_counter(interaction: discord.Interaction):
+        """Reset Minecraft counter system"""
+        try:
+            # Clear the counter channels from the bot's tracking
+            if hasattr(bot, 'minecraft_counter_channels'):
+                bot.minecraft_counter_channels.clear()
+                logger.info("Cleared minecraft counter channels tracking")
+            
+            # Clear the update task
+            if hasattr(bot, 'minecraft_counter_task'):
+                if bot.minecraft_counter_task and not bot.minecraft_counter_task.cancelled():
+                    bot.minecraft_counter_task.cancel()
+                bot.minecraft_counter_task = None
+                logger.info("Cancelled minecraft counter update task")
+            
+            embed = MessageUtils.create_success_embed(
+                title="🔄 Counter Reset Complete",
+                description="All Minecraft counter channels have been reset. You can now create new ones with `/minecraft-counter`."
+            )
+            embed.add_field(
+                name="ℹ️ What was reset",
+                value="• Counter channel tracking cleared\n• Update tasks cancelled\n• Ready for new counter setup",
+                inline=False
+            )
+            
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            logger.info(f"Counter reset by admin: {interaction.user}")
+            
+        except Exception as e:
+            logger.error(f"Error in reset-counter command: {e}")
+            await interaction.response.send_message("❌ An error occurred while resetting counters.", ephemeral=True)
+    
+    @bot.tree.command(name="force-update", description="Force update all Minecraft counter channels (Admin only)")
+    @app_commands.default_permissions(administrator=True)
+    async def force_update(interaction: discord.Interaction):
+        """Manually trigger counter update"""
+        try:
+            await interaction.response.defer(ephemeral=True)
+            
+            if not hasattr(bot, 'minecraft_counter_channels') or not bot.minecraft_counter_channels:
+                await interaction.followup.send("❌ No counter channels are currently active.", ephemeral=True)
+                return
+            
+            # Import the update function
+            from .minecraft_utils import update_minecraft_counter_channels
+            
+            # Force an update
+            await update_minecraft_counter_channels(bot)
+            
+            embed = MessageUtils.create_success_embed(
+                title="🔄 Update Triggered",
+                description=f"Manually updated {len(bot.minecraft_counter_channels)} counter channels."
+            )
+            embed.add_field(
+                name="📊 Active Counters",
+                value=f"Currently monitoring **{len(bot.minecraft_counter_channels)}** counter channels",
+                inline=False
+            )
+            
+            await interaction.followup.send(embed=embed, ephemeral=True)
+            logger.info(f"Manual counter update triggered by admin: {interaction.user}")
+            
+        except Exception as e:
+            logger.error(f"Error in force-update command: {e}")
+            try:
+                await interaction.followup.send("❌ An error occurred while forcing update.", ephemeral=True)
+            except:
+                await interaction.response.send_message("❌ An error occurred while forcing update.", ephemeral=True)
+    
     logger.info("All slash commands have been set up")
-    logger.info("Commands registered: ping, hello, info, say, embed, minecraft-counter, commands, voice-link, voice-unlink, voice-status, send-commands")
+    logger.info("Commands registered: ping, hello, info, say, embed, minecraft-counter, commands, voice-link, voice-unlink, voice-status, send-commands, reset-counter, force-update")

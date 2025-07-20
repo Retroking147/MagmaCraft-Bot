@@ -144,3 +144,5 @@ The architecture prioritizes simplicity and modularity, making it easy to extend
 - **Admin Restrictions**: Made `/minecraft-counter` command admin-only using `@app_commands.default_permissions(administrator=True)`
 - **Command List Feature**: Added `/send-commands` admin command to send organized command lists to channels
 - **Ephemeral Responses**: Commands used in channels with "command" + warning symbols now show responses only to user and admins
+- **Counter Management**: Added `/reset-counter` and `/force-update` admin commands for counter troubleshooting and manual control
+- **Voice Bridge Clarification**: Voice bridge is a manual system - users link accounts and manually join Discord voice channel for cross-platform chat
