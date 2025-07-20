@@ -10,6 +10,13 @@ from .voice_bridge import VoiceBridge
 
 logger = logging.getLogger(__name__)
 
+def is_commands_channel(interaction: discord.Interaction) -> bool:
+    """Check if the interaction is in a commands channel"""
+    if not interaction.channel:
+        return False
+    channel_name = interaction.channel.name.lower()
+    return "command" in channel_name and ("⚠️" in interaction.channel.name or "warning" in channel_name)
+
 async def setup_commands(bot):
     """Set up all slash commands for the bot"""
     
@@ -22,7 +29,8 @@ async def setup_commands(bot):
                 title="🏓 Pong!",
                 description=f"Bot latency: `{latency}ms`"
             )
-            await interaction.response.send_message(embed=embed)
+            ephemeral = is_commands_channel(interaction)
+            await interaction.response.send_message(embed=embed, ephemeral=ephemeral)
             logger.info(f"Ping command used by {interaction.user} - Latency: {latency}ms")
         except Exception as e:
             logger.error(f"Error in ping command: {e}")
@@ -38,7 +46,8 @@ async def setup_commands(bot):
                 description=f"Hello {user.mention}! Nice to meet you!"
             )
             embed.set_thumbnail(url=user.display_avatar.url)
-            await interaction.response.send_message(embed=embed)
+            ephemeral = is_commands_channel(interaction)
+            await interaction.response.send_message(embed=embed, ephemeral=ephemeral)
             logger.info(f"Hello command used by {user}")
         except Exception as e:
             logger.error(f"Error in hello command: {e}")
@@ -78,7 +87,8 @@ async def setup_commands(bot):
             embed.set_thumbnail(url=bot.user.display_avatar.url)
             embed.set_footer(text=f"Bot ID: {bot.user.id}")
             
-            await interaction.response.send_message(embed=embed)
+            ephemeral = is_commands_channel(interaction)
+            await interaction.response.send_message(embed=embed, ephemeral=ephemeral)
             logger.info(f"Info command used by {interaction.user}")
         except Exception as e:
             logger.error(f"Error in info command: {e}")
@@ -334,7 +344,8 @@ async def setup_commands(bot):
             )
             
             embed.set_footer(text="Use / followed by the command name to use them")
-            await interaction.response.send_message(embed=embed)
+            ephemeral = is_commands_channel(interaction)
+            await interaction.response.send_message(embed=embed, ephemeral=ephemeral)
             logger.info(f"Commands list requested by {interaction.user}")
             
         except Exception as e:

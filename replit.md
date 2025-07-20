@@ -141,3 +141,6 @@ The architecture prioritizes simplicity and modularity, making it easy to extend
 - **Stability Enhancement**: Added 2-minute buffer period before switching back to slow updates to handle brief disconnections
 - **Voice Bridge System**: Added parallel voice communication system for cross-platform play between Java and Bedrock players
 - **Voice Commands**: `/voice-link`, `/voice-unlink`, and `/voice-status` for managing Discord-Minecraft voice connections
+- **Admin Restrictions**: Made `/minecraft-counter` command admin-only using `@app_commands.default_permissions(administrator=True)`
+- **Command List Feature**: Added `/send-commands` admin command to send organized command lists to channels
+- **Ephemeral Responses**: Commands used in channels with "command" + warning symbols now show responses only to user and admins
