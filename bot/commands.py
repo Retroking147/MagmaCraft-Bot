@@ -213,7 +213,7 @@ async def setup_commands(bot):
             from .minecraft_utils import check_minecraft_server
             
             # Check if server is reachable
-            player_count, max_players, is_online = await check_minecraft_server(server_ip, server_port)
+            player_count, max_players, is_online, _ = await check_minecraft_server(server_ip, server_port)
             
             if not is_online:
                 await interaction.followup.send(
@@ -550,16 +550,12 @@ async def setup_commands(bot):
         """Reset Minecraft counter system"""
         try:
             # Clear the counter channels from the bot's tracking
-            if hasattr(bot, 'minecraft_counter_channels'):
-                bot.minecraft_counter_channels.clear()
-                logger.info("Cleared minecraft counter channels tracking")
+            if hasattr(bot, 'minecraft_counters'):
+                bot.minecraft_counters.clear()
+                logger.info("Cleared minecraft counters tracking")
             
-            # Clear the update task
-            if hasattr(bot, 'minecraft_counter_task'):
-                if bot.minecraft_counter_task and not bot.minecraft_counter_task.cancelled():
-                    bot.minecraft_counter_task.cancel()
-                bot.minecraft_counter_task = None
-                logger.info("Cancelled minecraft counter update task")
+            # The update task continues running but will have no counters to update
+            logger.info("Counter tracking cleared - update task will continue but find no counters")
             
             embed = MessageUtils.create_success_embed(
                 title="🔄 Counter Reset Complete",
@@ -585,23 +581,30 @@ async def setup_commands(bot):
         try:
             await interaction.response.defer(ephemeral=True)
             
-            if not hasattr(bot, 'minecraft_counter_channels') or not bot.minecraft_counter_channels:
+            if not hasattr(bot, 'minecraft_counters') or not bot.minecraft_counters:
                 await interaction.followup.send("❌ No counter channels are currently active.", ephemeral=True)
                 return
             
-            # Import the update function
-            from .minecraft_utils import update_minecraft_counter_channels
+            # Import the update function  
+            from .minecraft_utils import update_minecraft_counter_channel
             
-            # Force an update
-            await update_minecraft_counter_channels(bot)
+            # Force an update on all counters
+            updated_count = 0
+            for channel_id, server_info in bot.minecraft_counters.items():
+                try:
+                    success, _, _ = await update_minecraft_counter_channel(bot, channel_id, server_info)
+                    if success:
+                        updated_count += 1
+                except Exception as e:
+                    logger.error(f"Error force updating counter {channel_id}: {e}")
             
             embed = MessageUtils.create_success_embed(
                 title="🔄 Update Triggered",
-                description=f"Manually updated {len(bot.minecraft_counter_channels)} counter channels."
+                description=f"Manually updated {updated_count} counter channels."
             )
             embed.add_field(
                 name="📊 Active Counters",
-                value=f"Currently monitoring **{len(bot.minecraft_counter_channels)}** counter channels",
+                value=f"Currently monitoring **{len(bot.minecraft_counters)}** counter channels",
                 inline=False
             )
             
