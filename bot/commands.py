@@ -163,17 +163,19 @@ async def setup_commands(bot):
             logger.error(f"Error in embed command: {e}")
             await interaction.response.send_message("❌ An error occurred while creating the embed.", ephemeral=True)
     
-    @bot.tree.command(name="minecraft-counter", description="Create a channel that shows Minecraft server player count")
+    @bot.tree.command(name="minecraft-counter", description="Create channels that show Minecraft server status and player count")
     @app_commands.describe(
         server_ip="Your Minecraft server IP address",
         server_port="Server port (default: 25565)",
-        channel_name="Name format for the channel (use {count} for player count)"
+        status_channel_name="Name format for status channel (use {status} for online/offline)",
+        count_channel_name="Name format for player count channel (use {count} for player count)"
     )
     async def minecraft_counter(
         interaction: discord.Interaction, 
         server_ip: str, 
         server_port: int = 25565,
-        channel_name: str = "Players Online: {count}"
+        status_channel_name: str = "{status} Server Status",
+        count_channel_name: str = "👤 {count} Players"
     ):
         """Create a voice channel that displays Minecraft server player count"""
         try:
@@ -209,13 +211,21 @@ async def setup_commands(bot):
                 )
                 return
             
-            # Format channel name with current player count and status indicator
+            # Format channel names
             status_indicator = "🟢" if is_online else "🔴"
-            formatted_name = channel_name.format(count=f"{status_indicator} {player_count}/{max_players}")
+            status_text = "Online" if is_online else "Offline"
+            status_formatted_name = status_channel_name.format(status=f"{status_indicator} {status_text}")
+            count_formatted_name = count_channel_name.format(count=f"{player_count}/{max_players}")
             
-            # Create voice channel
-            channel = await interaction.guild.create_voice_channel(
-                name=formatted_name,
+            # Create status voice channel
+            status_channel = await interaction.guild.create_voice_channel(
+                name=status_formatted_name,
+                reason=f"Minecraft status counter created by {interaction.user}"
+            )
+            
+            # Create player count voice channel
+            count_channel = await interaction.guild.create_voice_channel(
+                name=count_formatted_name,
                 reason=f"Minecraft player counter created by {interaction.user}"
             )
             
@@ -223,29 +233,49 @@ async def setup_commands(bot):
             if not hasattr(bot, 'minecraft_counters'):
                 bot.minecraft_counters = {}
             
-            bot.minecraft_counters[channel.id] = {
+            # Store both channels with their templates
+            bot.minecraft_counters[status_channel.id] = {
                 'server_ip': server_ip,
                 'server_port': server_port,
-                'channel_name_template': channel_name,
+                'channel_type': 'status',
+                'channel_name_template': status_channel_name,
+                'guild_id': interaction.guild.id
+            }
+            
+            bot.minecraft_counters[count_channel.id] = {
+                'server_ip': server_ip,
+                'server_port': server_port,
+                'channel_type': 'count',
+                'channel_name_template': count_channel_name,
                 'guild_id': interaction.guild.id
             }
             
             # Create success embed
             embed = MessageUtils.create_success_embed(
-                title="🎮 Minecraft Counter Created!",
-                description=f"Created channel: **{formatted_name}**"
+                title="🎮 Minecraft Counters Created!",
+                description=f"Created two channels for your server monitoring"
             )
             embed.add_field(
-                name="📊 Server Status",
-                value=f"Server: `{server_ip}:{server_port}`\nPlayers: `{player_count}/{max_players}`",
-                inline=False
+                name="📊 Status Channel",
+                value=f"**{status_formatted_name}**\nShows online/offline status",
+                inline=True
+            )
+            embed.add_field(
+                name="👤 Player Count Channel", 
+                value=f"**{count_formatted_name}**\nShows current player count",
+                inline=True
             )
             embed.add_field(
                 name="🔄 Updates",
-                value="The channel name will update automatically every 5 minutes.",
+                value="Both channels update automatically every 5 minutes.",
                 inline=False
             )
-            embed.set_footer(text=f"Channel ID: {channel.id}")
+            embed.add_field(
+                name="🖥️ Server Info",
+                value=f"Server: `{server_ip}:{server_port}`\nCurrent Status: `{status_text}`\nPlayers: `{player_count}/{max_players}`",
+                inline=False
+            )
+            embed.set_footer(text=f"Status ID: {status_channel.id} | Count ID: {count_channel.id}")
             
             await interaction.followup.send(embed=embed)
             logger.info(f"Minecraft counter created by {interaction.user} for server {server_ip}:{server_port}")

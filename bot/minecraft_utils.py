@@ -174,13 +174,28 @@ async def update_minecraft_counter_channel(bot, channel_id: int, server_info: di
             server_info['server_port']
         )
         
-        # Format channel name with status indicator
-        if is_online:
-            status_indicator = "🟢"
-            formatted_name = server_info['channel_name_template'].format(count=f"{status_indicator} {player_count}/{max_players}")
+        # Format channel name based on channel type
+        channel_type = server_info.get('channel_type', 'combined')  # Default to old behavior for compatibility
+        
+        if channel_type == 'status':
+            # Status channel: show online/offline with emoji
+            status_indicator = "🟢" if is_online else "🔴"
+            status_text = "Online" if is_online else "Offline"
+            formatted_name = server_info['channel_name_template'].format(status=f"{status_indicator} {status_text}")
+        elif channel_type == 'count':
+            # Count channel: show player count with person emoji
+            if is_online:
+                formatted_name = server_info['channel_name_template'].format(count=f"{player_count}/{max_players}")
+            else:
+                formatted_name = server_info['channel_name_template'].format(count="0/0")
         else:
-            status_indicator = "🔴"
-            formatted_name = server_info['channel_name_template'].format(count=f"{status_indicator} Offline")
+            # Legacy combined format (for backward compatibility)
+            if is_online:
+                status_indicator = "🟢"
+                formatted_name = server_info['channel_name_template'].format(count=f"{status_indicator} {player_count}/{max_players}")
+            else:
+                status_indicator = "🔴"
+                formatted_name = server_info['channel_name_template'].format(count=f"{status_indicator} Offline")
         
         # Update channel name if it's different
         if channel.name != formatted_name:
