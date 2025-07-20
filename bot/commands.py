@@ -267,4 +267,34 @@ async def setup_commands(bot):
                     ephemeral=True
                 )
     
+    @bot.tree.command(name="commands", description="List all available bot commands")
+    async def commands_list(interaction: discord.Interaction):
+        """List all available commands"""
+        try:
+            commands = bot.tree.get_commands()
+            
+            embed = MessageUtils.create_info_embed(
+                title="🤖 Available Commands",
+                description=f"Here are all {len(commands)} available slash commands:"
+            )
+            
+            command_list = []
+            for cmd in commands:
+                command_list.append(f"• `/{cmd.name}` - {cmd.description}")
+            
+            embed.add_field(
+                name="Commands",
+                value="\n".join(command_list),
+                inline=False
+            )
+            
+            embed.set_footer(text="Use / followed by the command name to use them")
+            await interaction.response.send_message(embed=embed)
+            logger.info(f"Commands list requested by {interaction.user}")
+            
+        except Exception as e:
+            logger.error(f"Error in commands command: {e}")
+            await interaction.response.send_message("❌ An error occurred while listing commands.", ephemeral=True)
+    
     logger.info("All slash commands have been set up")
+    logger.info("Commands registered: ping, hello, info, say, embed, minecraft-counter, commands")
