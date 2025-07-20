@@ -106,30 +106,30 @@ class DiscordBot(commands.Bot):
         # Adjust update interval based on player activity with cooldown system
         current_time = time.time()
         
-        if any_players_online != self.has_active_players:
-            if any_players_online:
-                # Players detected - immediately switch to fast updates
+        if any_players_online:
+            # Players are online - use fast updates and reset cooldown
+            if not self.has_active_players or self.last_empty_time:
                 self.has_active_players = True
-                self.last_empty_time = None  # Reset empty timer
+                self.last_empty_time = None
                 logger.info("Players detected online - switching to 15-second updates")
                 self.update_minecraft_counters.change_interval(seconds=15)
-            else:
-                # No players detected
-                if self.has_active_players:
-                    # Just became empty - start cooldown timer
-                    self.last_empty_time = current_time
-                    logger.info(f"Server became empty - starting {self.cooldown_seconds}s cooldown before switching to 30-second updates")
-                elif self.last_empty_time and (current_time - self.last_empty_time) >= self.cooldown_seconds:
-                    # Cooldown period completed - switch to slow updates
-                    self.has_active_players = False
-                    self.last_empty_time = None
-                    logger.info("Cooldown completed - switching to 30-second updates")
-                    self.update_minecraft_counters.change_interval(seconds=30)
-                elif self.last_empty_time:
-                    # Still in cooldown period
-                    remaining = int(self.cooldown_seconds - (current_time - self.last_empty_time))
-                    if remaining % 30 == 0:  # Log every 30 seconds during cooldown
-                        logger.info(f"Cooldown active - {remaining}s remaining before switching to 30-second updates")
+        else:
+            # No players online
+            if self.has_active_players and not self.last_empty_time:
+                # Just became empty - start 120s grace period with fast updates
+                self.last_empty_time = current_time
+                logger.info(f"Server became empty - maintaining 15-second updates for {self.cooldown_seconds}s grace period")
+            elif self.last_empty_time and (current_time - self.last_empty_time) >= self.cooldown_seconds:
+                # Grace period completed and still empty - switch to slow updates
+                self.has_active_players = False
+                self.last_empty_time = None
+                logger.info("Grace period completed with no rejoins - switching to 30-second updates")
+                self.update_minecraft_counters.change_interval(seconds=30)
+            elif self.last_empty_time:
+                # Still in grace period - keep fast updates
+                remaining = int(self.cooldown_seconds - (current_time - self.last_empty_time))
+                if remaining % 45 == 0 and remaining > 0:  # Log every 45 seconds during grace period
+                    logger.info(f"Grace period active - {remaining}s remaining at 15-second updates")
     
     @update_minecraft_counters.before_loop
     async def before_update_minecraft_counters(self):

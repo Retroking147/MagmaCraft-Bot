@@ -267,7 +267,7 @@ async def setup_commands(bot):
             )
             embed.add_field(
                 name="🔄 Smart Updates",
-                value="• **No players**: 30-second intervals\n• **Players online**: 15-second intervals\n• **Cooldown**: 2-minute delay before switching back to slow updates",
+                value="• **Players online**: 15-second intervals\n• **Server empty**: Maintains 15-second intervals for 2 minutes\n• **After grace period**: Switches to 30-second intervals",
                 inline=False
             )
             embed.add_field(
