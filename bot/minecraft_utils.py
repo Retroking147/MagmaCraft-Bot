@@ -174,11 +174,13 @@ async def update_minecraft_counter_channel(bot, channel_id: int, server_info: di
             server_info['server_port']
         )
         
-        # Format channel name
+        # Format channel name with status indicator
         if is_online:
-            formatted_name = server_info['channel_name_template'].format(count=f"{player_count}/{max_players}")
+            status_indicator = "🟢"
+            formatted_name = server_info['channel_name_template'].format(count=f"{status_indicator} {player_count}/{max_players}")
         else:
-            formatted_name = server_info['channel_name_template'].format(count="Offline")
+            status_indicator = "🔴"
+            formatted_name = server_info['channel_name_template'].format(count=f"{status_indicator} Offline")
         
         # Update channel name if it's different
         if channel.name != formatted_name:

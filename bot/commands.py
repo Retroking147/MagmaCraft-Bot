@@ -209,8 +209,9 @@ async def setup_commands(bot):
                 )
                 return
             
-            # Format channel name with current player count
-            formatted_name = channel_name.format(count=f"{player_count}/{max_players}")
+            # Format channel name with current player count and status indicator
+            status_indicator = "🟢" if is_online else "🔴"
+            formatted_name = channel_name.format(count=f"{status_indicator} {player_count}/{max_players}")
             
             # Create voice channel
             channel = await interaction.guild.create_voice_channel(
