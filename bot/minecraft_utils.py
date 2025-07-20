@@ -10,7 +10,7 @@ from typing import Tuple
 
 logger = logging.getLogger(__name__)
 
-async def check_minecraft_server(server_ip: str, server_port: int = 25565) -> Tuple[int, int, bool]:
+async def check_minecraft_server(server_ip: str, server_port: int = 25565):
     """
     Check Minecraft server status and get player count
     
@@ -19,7 +19,7 @@ async def check_minecraft_server(server_ip: str, server_port: int = 25565) -> Tu
         server_port (int): Server port (default: 25565)
         
     Returns:
-        Tuple[int, int, bool]: (current_players, max_players, is_online)
+        Tuple[int, int, bool, List[str]]: (current_players, max_players, is_online, players_list)
     """
     try:
         # Use asyncio to run the synchronous socket operation
@@ -28,9 +28,9 @@ async def check_minecraft_server(server_ip: str, server_port: int = 25565) -> Tu
         return result
     except Exception as e:
         logger.error(f"Error checking Minecraft server {server_ip}:{server_port}: {e}")
-        return 0, 0, False
+        return 0, 0, False, []
 
-def _sync_check_minecraft_server(server_ip: str, server_port: int) -> Tuple[int, int, bool]:
+def _sync_check_minecraft_server(server_ip: str, server_port: int):
     """
     Synchronous Minecraft server status check using Server List Ping protocol
     """
@@ -56,7 +56,7 @@ def _sync_check_minecraft_server(server_ip: str, server_port: int) -> Tuple[int,
         
         if packet_id != 0:
             logger.warning(f"Unexpected packet ID: {packet_id}")
-            return 0, 0, False
+            return 0, 0, False, []
         
         # Read JSON response length and data
         json_length = _read_varint(sock)
@@ -73,21 +73,26 @@ def _sync_check_minecraft_server(server_ip: str, server_port: int) -> Tuple[int,
         online = players.get('online', 0)
         max_players = players.get('max', 0)
         
+        # Extract player list if available (not all servers provide this)
+        players_list = []
+        if 'players' in server_info and 'sample' in server_info['players']:
+            players_list = [player['name'] for player in server_info['players']['sample']]
+        
         logger.info(f"Minecraft server {server_ip}:{server_port} - {online}/{max_players} players")
-        return online, max_players, True
+        return online, max_players, True, players_list
         
     except socket.timeout:
         logger.warning(f"Timeout connecting to Minecraft server {server_ip}:{server_port}")
-        return 0, 0, False
+        return 0, 0, False, []
     except socket.gaierror:
         logger.warning(f"Could not resolve hostname {server_ip}")
-        return 0, 0, False
+        return 0, 0, False, []
     except ConnectionRefusedError:
         logger.warning(f"Connection refused to {server_ip}:{server_port}")
-        return 0, 0, False
+        return 0, 0, False, []
     except Exception as e:
         logger.error(f"Error in sync Minecraft server check: {e}")
-        return 0, 0, False
+        return 0, 0, False, []
 
 def _create_handshake_packet(server_ip: str, server_port: int) -> bytes:
     """Create Minecraft handshake packet"""
@@ -163,17 +168,17 @@ async def update_minecraft_counter_channel(bot, channel_id: int, server_info: di
         server_info: Dictionary containing server connection info
         
     Returns:
-        Tuple[bool, bool]: (success, has_players)
+        Tuple[bool, bool, List[str]]: (success, has_players, players_list)
     """
     try:
         # Get channel
         channel = bot.get_channel(channel_id)
         if not channel:
             logger.warning(f"Could not find channel {channel_id} for Minecraft counter")
-            return False, False
+            return False, False, []
         
         # Check server status
-        player_count, max_players, is_online = await check_minecraft_server(
+        player_count, max_players, is_online, players_list = await check_minecraft_server(
             server_info['server_ip'], 
             server_info['server_port']
         )
@@ -214,10 +219,10 @@ async def update_minecraft_counter_channel(bot, channel_id: int, server_info: di
             except Exception as e:
                 logger.error(f"Error updating channel {channel_id}: {e}")
         
-        # Return success and whether there are active players
+        # Return success, whether there are active players, and the player list
         has_players = is_online and player_count > 0
-        return True, has_players
+        return True, has_players, players_list
         
     except Exception as e:
         logger.error(f"Error updating Minecraft counter channel {channel_id}: {e}")
-        return False, False
+        return False, False, []

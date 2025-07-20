@@ -118,16 +118,52 @@ class VoiceBridge:
             if should_be_in_voice:
                 # User should be in voice channel
                 if member.voice and member.voice.channel != self.minecraft_voice_channel:
+                    # User is in a different voice channel - move them to the bridge
                     await member.move_to(self.minecraft_voice_channel)
-                    logger.info(f"Moved {member.display_name} to voice bridge")
+                    logger.info(f"Automatically moved {member.display_name} to Minecraft voice bridge (was in {member.voice.channel.name})")
                 elif not member.voice:
-                    # User not in any voice channel - they need to join manually
-                    logger.debug(f"{member.display_name} needs to join voice channel manually")
+                    # User not in any voice channel - send them a notification
+                    try:
+                        embed = discord.Embed(
+                            title="🎮 Minecraft Voice Bridge",
+                            description=f"You joined the Minecraft server! Join the voice channel to chat with other players.",
+                            color=0x00FF00
+                        )
+                        embed.add_field(
+                            name="Voice Channel",
+                            value=f"{self.minecraft_voice_channel.mention}",
+                            inline=False
+                        )
+                        await member.send(embed=embed)
+                        logger.info(f"Sent voice bridge notification to {member.display_name}")
+                    except discord.Forbidden:
+                        logger.debug(f"Could not DM {member.display_name} about voice bridge")
+                else:
+                    # User already in correct channel
+                    logger.debug(f"{member.display_name} already in voice bridge")
             else:
-                # User should not be in voice channel
+                # User should not be in voice channel (they left Minecraft)
                 if member.voice and member.voice.channel == self.minecraft_voice_channel:
-                    await member.move_to(None)
-                    logger.info(f"Removed {member.display_name} from voice bridge")
+                    # Check if there are other players still in Minecraft before disconnecting
+                    should_disconnect = True
+                    
+                    # If the user wants to stay connected for other reasons, we can add logic here
+                    # For now, we'll automatically disconnect them when they leave Minecraft
+                    
+                    if should_disconnect:
+                        await member.move_to(None)
+                        logger.info(f"Automatically disconnected {member.display_name} from voice bridge (left Minecraft)")
+                        
+                        # Send them a notification
+                        try:
+                            embed = discord.Embed(
+                                title="👋 Left Minecraft",
+                                description="You left the Minecraft server, so you were disconnected from the voice bridge.",
+                                color=0xFF6B00
+                            )
+                            await member.send(embed=embed)
+                        except discord.Forbidden:
+                            logger.debug(f"Could not DM {member.display_name} about voice bridge disconnect")
                     
         except Exception as e:
             logger.error(f"Error managing voice for user {discord_user_id}: {e}")

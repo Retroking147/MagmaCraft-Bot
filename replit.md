@@ -145,4 +145,7 @@ The architecture prioritizes simplicity and modularity, making it easy to extend
 - **Command List Feature**: Added `/send-commands` admin command to send organized command lists to channels
 - **Ephemeral Responses**: Commands used in channels with "command" + warning symbols now show responses only to user and admins
 - **Counter Management**: Added `/reset-counter` and `/force-update` admin commands for counter troubleshooting and manual control
-- **Voice Bridge Clarification**: Voice bridge is a manual system - users link accounts and manually join Discord voice channel for cross-platform chat
+- **Automatic Voice Bridge**: Enhanced voice bridge to automatically connect/disconnect users when joining/leaving Minecraft server
+- **Player Detection System**: Bot now monitors Minecraft server for player join/leave events and manages Discord voice accordingly
+- **Smart Voice Management**: Automatically moves users to voice bridge channel when they join Minecraft, sends notifications if not in voice
+- **Auto-Disconnect**: Automatically removes users from voice bridge when they leave Minecraft server with notification DMs
