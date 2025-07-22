@@ -8,3 +8,5 @@ python-dotenv==1.0.0
 requests==2.32.4
 sqlalchemy==2.0.25
 gunicorn==21.2.0
+python-ffmpeg==1.0.16
+yt-dlp==2023.12.30
