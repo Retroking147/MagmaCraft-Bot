@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Bot Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <div class="bot-info">
+                    <div class="bot-avatar">
+                        <div class="avatar-circle">🤖</div>
+                        <div class="status-indicator" id="botStatus"></div>
+                    </div>
+                    <div class="bot-details">
+                        <h1 class="bot-name">Discord Bot Dashboard</h1>
+                        <p class="bot-subtitle">Minecraft Server Management & Statistics</p>
+                    </div>
+                </div>
+                <div class="last-updated">
+                    <span id="lastUpdated">Loading...</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="stats-grid">
+            <!-- Main Statistics Cards -->
+            <div class="stat-card primary">
+                <div class="stat-header">
+                    <h3>⚡ Minecraft Counter Updates</h3>
+                </div>
+                <div class="stat-content">
+                    <div class="gauge-container">
+                        <canvas id="minecraftCounterGauge" width="200" height="200"></canvas>
+                    </div>
+                    <div class="stat-number" id="minecraftCounterValue">0</div>
+                    <div class="stat-label">Total Updates</div>
+                </div>
+            </div>
+
+            <div class="stat-card secondary">
+                <div class="stat-header">
+                    <h3>📊 Bot Usage</h3>
+                </div>
+                <div class="stat-content">
+                    <div class="gauge-container">
+                        <canvas id="botUsageGauge" width="200" height="200"></canvas>
+                    </div>
+                    <div class="stat-number" id="botUsageValue">0</div>
+                    <div class="stat-label">Commands Used</div>
+                </div>
+            </div>
+
+            <div class="stat-card success">
+                <div class="stat-header">
+                    <h3>⏱️ Uptime</h3>
+                </div>
+                <div class="stat-content">
+                    <div class="gauge-container">
+                        <canvas id="uptimeGauge" width="200" height="200"></canvas>
+                    </div>
+                    <div class="stat-number" id="uptimeValue">0%</div>
+                    <div class="stat-label">Availability</div>
+                </div>
+            </div>
+
+            <div class="stat-card warning">
+                <div class="stat-header">
+                    <h3>🌐 Server Status</h3>
+                </div>
+                <div class="stat-content">
+                    <div class="server-stats">
+                        <div class="server-stat">
+                            <span class="stat-label">Servers Monitored</span>
+                            <span class="stat-value" id="serversMonitored">0</span>
+                        </div>
+                        <div class="server-stat">
+                            <span class="stat-label">Success Rate</span>
+                            <span class="stat-value" id="successRate">0%</span>
+                        </div>
+                        <div class="server-stat">
+                            <span class="stat-label">Avg Response</span>
+                            <span class="stat-value" id="avgResponse">0ms</span>
+                        </div>
+                        <div class="server-stat">
+                            <span class="stat-label">Max Players Seen</span>
+                            <span class="stat-value" id="maxPlayers">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Command Usage Chart -->
+            <div class="chart-card">
+                <div class="stat-header">
+                    <h3>📈 Command Usage Breakdown</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="commandUsageChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Minecraft Server History Chart -->
+            <div class="chart-card wide">
+                <div class="stat-header">
+                    <h3>🎮 Minecraft Server History (24h)</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="minecraftHistoryChart"></canvas>
+                </div>
+            </div>
+
+            <!-- System Info -->
+            <div class="info-card">
+                <div class="stat-header">
+                    <h3>🔧 System Information</h3>
+                </div>
+                <div class="info-content">
+                    <div class="info-item">
+                        <span class="info-label">Bot Restarts</span>
+                        <span class="info-value" id="botRestarts">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Guilds Joined</span>
+                        <span class="info-value" id="guildsJoined">0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Current Session</span>
+                        <span class="info-value" id="currentSession">0s</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Total Uptime</span>
+                        <span class="info-value" id="totalUptime">0s</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Uptime Monitoring Link -->
+            <div class="monitoring-card">
+                <div class="stat-header">
+                    <h3>📡 External Monitoring</h3>
+                </div>
+                <div class="monitoring-content">
+                    <p>Use this URL for uptime monitoring services:</p>
+                    <div class="monitoring-url">
+                        <input type="text" id="monitoringUrl" readonly>
+                        <button onclick="copyToClipboard()" class="copy-btn">Copy</button>
+                    </div>
+                    <p class="monitoring-note">
+                        This endpoint returns bot health status for services like UptimeRobot.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>

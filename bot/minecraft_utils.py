@@ -170,6 +170,9 @@ async def update_minecraft_counter_channel(bot, channel_id: int, server_info: di
     Returns:
         Tuple[bool, bool, List[str]]: (success, has_players, players_list)
     """
+    import time
+    start_time = time.time()
+    
     try:
         # Get channel
         channel = bot.get_channel(channel_id)
@@ -182,6 +185,9 @@ async def update_minecraft_counter_channel(bot, channel_id: int, server_info: di
             server_info['server_ip'], 
             server_info['server_port']
         )
+        
+        # Calculate response time
+        response_time_ms = int((time.time() - start_time) * 1000)
         
         # Format channel name based on channel type
         channel_type = server_info.get('channel_type', 'combined')  # Default to old behavior for compatibility
@@ -218,6 +224,18 @@ async def update_minecraft_counter_channel(bot, channel_id: int, server_info: di
                     logger.error(f"HTTP error updating channel {channel_id}: {e}")
             except Exception as e:
                 logger.error(f"Error updating channel {channel_id}: {e}")
+        
+        # Track statistics if bot has stats tracker
+        if hasattr(bot, 'stats_tracker') and bot.stats_tracker:
+            bot.stats_tracker.track_minecraft_counter_update(
+                server_info['server_ip'],
+                server_info['server_port'],
+                player_count,
+                max_players,
+                is_online,
+                response_time_ms,
+                players_list
+            )
         
         # Return success, whether there are active players, and the player list
         has_players = is_online and player_count > 0

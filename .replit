@@ -1,4 +1,4 @@
-modules = ["python-3.11"]
+modules = ["python-3.11", "python3"]
 
 [nix]
 channel = "stable-24_05"
@@ -13,24 +13,17 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Discord Bot"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "discord_bot"
+args = "WebDashboard"
 
 [[workflows.workflow]]
-name = "Discord Bot"
+name = "WebDashboard"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "pip install discord.py python-dotenv && python main.py"
+args = "python run_web_only.py"
+waitForPort = 5000
 
-[[workflows.workflow]]
-name = "discord_bot"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "pip install discord.py python-dotenv && python main.py"
+[[ports]]
+localPort = 5000
+externalPort = 80
