@@ -8,8 +8,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def create_application():
-    from web_app import create_app
-    return create_app()
+    try:
+        from web_app import create_app
+        return create_app()
+    except Exception as e:
+        print(f"Failed to load main app: {e}")
+        print("Loading simple health check version...")
+        from simple_web import create_app
+        return create_app()
 
 app = create_application()
 
