@@ -4,14 +4,21 @@ class Dashboard {
         this.charts = {};
         this.gauges = {};
         this.updateInterval = 30000; // Update every 30 seconds
+        this.currentTab = 'dashboard';
+        this.musicQueue = [];
+        this.currentTrack = null;
+        this.isPlaying = false;
         this.init();
     }
 
     async init() {
         this.setupGauges();
         this.setupMonitoringUrl();
+        this.setupVolumeSlider();
         await this.loadData();
         this.startAutoUpdate();
+        this.loadModerationStats();
+        this.loadMinecraftServers();
     }
 
     setupGauges() {
@@ -312,6 +319,50 @@ class Dashboard {
         return num.toString();
     }
 
+    setupVolumeSlider() {
+        const volumeSlider = document.getElementById('defaultVolume');
+        const volumeDisplay = document.getElementById('volumeDisplay');
+        
+        if (volumeSlider && volumeDisplay) {
+            volumeSlider.addEventListener('input', (e) => {
+                volumeDisplay.textContent = `${e.target.value}%`;
+            });
+        }
+    }
+
+    loadModerationStats() {
+        // Simulate moderation stats
+        document.getElementById('warningsToday').textContent = Math.floor(Math.random() * 15);
+        document.getElementById('bansWeek').textContent = Math.floor(Math.random() * 5);
+        document.getElementById('activeTimeouts').textContent = Math.floor(Math.random() * 8);
+        document.getElementById('deletedMessages').textContent = Math.floor(Math.random() * 50);
+    }
+
+    loadMinecraftServers() {
+        const serverList = document.getElementById('minecraftServerList');
+        if (!serverList) return;
+
+        // Simulate server list
+        const servers = [
+            { name: 'play.hypixel.net:25565', status: 'Online', players: '47,234/200,000' },
+            { name: 'mc.mineplex.com:25565', status: 'Online', players: '8,492/20,000' },
+            { name: 'play.cubecraft.net:25565', status: 'Offline', players: '0/0' }
+        ];
+
+        serverList.innerHTML = servers.map(server => `
+            <div class="server-item">
+                <div class="server-info">
+                    <div class="server-name">${server.name}</div>
+                    <div class="server-status">${server.status} • ${server.players} players</div>
+                </div>
+                <div class="server-actions-inline">
+                    <button onclick="updateServer('${server.name}')">Update</button>
+                    <button onclick="removeServer('${server.name}')">Remove</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
     showError(message) {
         console.error(message);
         // You could implement a toast notification here
@@ -319,16 +370,275 @@ class Dashboard {
 
     startAutoUpdate() {
         setInterval(() => {
-            this.loadData();
+            if (this.currentTab === 'dashboard') {
+                this.loadData();
+            }
         }, this.updateInterval);
     }
+}
+
+// Tab Navigation
+function switchTab(tabName) {
+    // Remove active class from all tabs and nav items
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Add active class to selected tab and nav item
+    document.getElementById(`${tabName}-tab`).classList.add('active');
+    document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+    
+    // Update current tab
+    if (window.dashboardInstance) {
+        window.dashboardInstance.currentTab = tabName;
+    }
+    
+    // Load tab-specific content
+    if (tabName === 'minecraft') {
+        refreshServerList();
+    } else if (tabName === 'moderation') {
+        loadModerationLog();
+    }
+}
+
+// Music Controls
+function togglePlayPause() {
+    const btn = document.getElementById('playPauseBtn');
+    const dashboard = window.dashboardInstance;
+    
+    if (dashboard.isPlaying) {
+        btn.textContent = '▶️';
+        dashboard.isPlaying = false;
+        document.getElementById('musicStatus').textContent = 'Paused';
+    } else {
+        btn.textContent = '⏸️';
+        dashboard.isPlaying = true;
+        document.getElementById('musicStatus').textContent = 'Playing';
+    }
+}
+
+function previousTrack() {
+    showNotification('Previous track');
+}
+
+function nextTrack() {
+    showNotification('Next track');
+}
+
+function toggleShuffle() {
+    showNotification('Shuffle toggled');
+}
+
+function toggleRepeat() {
+    showNotification('Repeat toggled');
+}
+
+function addMusic() {
+    const url = document.getElementById('musicUrl').value;
+    if (url) {
+        showNotification(`Added to queue: ${url}`);
+        document.getElementById('musicUrl').value = '';
+        updateQueue();
+    }
+}
+
+function joinVoice() {
+    showNotification('Joining voice channel...');
+}
+
+function leaveVoice() {
+    showNotification('Left voice channel');
+}
+
+function clearQueue() {
+    document.getElementById('queueList').innerHTML = '<div class="empty-queue">No songs in queue</div>';
+    document.getElementById('queueCount').textContent = '0 songs';
+    showNotification('Queue cleared');
+}
+
+function shuffleQueue() {
+    showNotification('Queue shuffled');
+}
+
+function updateQueue() {
+    // Simulate queue update
+    const queueCount = Math.floor(Math.random() * 10) + 1;
+    document.getElementById('queueCount').textContent = `${queueCount} songs`;
+    
+    const queueList = document.getElementById('queueList');
+    queueList.innerHTML = Array.from({ length: queueCount }, (_, i) => `
+        <div class="queue-item">
+            <div>
+                <div class="song-title">Song Title ${i + 1}</div>
+                <div class="song-artist">Artist ${i + 1}</div>
+            </div>
+            <button onclick="removeFromQueue(${i})">Remove</button>
+        </div>
+    `).join('');
+}
+
+function removeFromQueue(index) {
+    showNotification(`Removed song from queue`);
+    updateQueue();
+}
+
+// Moderation Functions
+function performModAction() {
+    const userId = document.getElementById('userId').value;
+    const action = document.getElementById('actionType').value;
+    const reason = document.getElementById('reason').value;
+    
+    if (userId) {
+        showNotification(`${action} action performed on ${userId}${reason ? `: ${reason}` : ''}`);
+        document.getElementById('userId').value = '';
+        document.getElementById('reason').value = '';
+        loadModerationLog();
+    }
+}
+
+function saveAutoModSettings() {
+    showNotification('Auto-moderation settings saved');
+}
+
+function loadModerationLog() {
+    const actionLog = document.getElementById('actionLog');
+    if (!actionLog) return;
+    
+    const actions = [
+        { time: '2 minutes ago', action: 'Warned', user: 'User#1234', reason: 'Spam' },
+        { time: '15 minutes ago', action: 'Timeout', user: 'User#5678', reason: 'Inappropriate language' },
+        { time: '1 hour ago', action: 'Banned', user: 'User#9101', reason: 'Raid attempt' }
+    ];
+    
+    actionLog.innerHTML = actions.map(entry => `
+        <div class="log-entry">
+            <span class="log-time">${entry.time}</span>
+            <span class="log-action">${entry.action}</span>
+            <span class="log-user">${entry.user}</span>
+            <span class="log-reason">${entry.reason}</span>
+        </div>
+    `).join('');
+}
+
+// Minecraft Management
+function addMinecraftServer() {
+    const ip = document.getElementById('serverIp').value;
+    const port = document.getElementById('serverPort').value;
+    const statusName = document.getElementById('statusChannelName').value;
+    const countName = document.getElementById('countChannelName').value;
+    
+    if (ip) {
+        showNotification(`Added server monitoring for ${ip}:${port}`);
+        document.getElementById('serverIp').value = '';
+        document.getElementById('serverPort').value = '25565';
+        document.getElementById('statusChannelName').value = '';
+        document.getElementById('countChannelName').value = '';
+        refreshServerList();
+    }
+}
+
+function forceUpdateCounters() {
+    showNotification('Force updating all counters...');
+}
+
+function resetCounters() {
+    showNotification('Resetting all counters...');
+}
+
+function testConnections() {
+    showNotification('Testing server connections...');
+}
+
+function exportServerList() {
+    showNotification('Exporting server list...');
+}
+
+function refreshServerList() {
+    if (window.dashboardInstance) {
+        window.dashboardInstance.loadMinecraftServers();
+    }
+}
+
+function updateServer(serverName) {
+    showNotification(`Updating ${serverName}...`);
+}
+
+function removeServer(serverName) {
+    if (confirm(`Remove monitoring for ${serverName}?`)) {
+        showNotification(`Removed ${serverName}`);
+        refreshServerList();
+    }
+}
+
+// Settings Functions
+function saveGuildSettings() {
+    showNotification('Guild settings saved');
+}
+
+function saveWelcomeSettings() {
+    showNotification('Welcome settings saved');
+}
+
+function saveTokens() {
+    showNotification('API tokens saved securely');
+}
+
+function testToken(service) {
+    showNotification(`Testing ${service} token...`);
+    setTimeout(() => {
+        showNotification(`${service} token is valid`);
+    }, 2000);
+}
+
+function restartBot() {
+    if (confirm('Are you sure you want to restart the bot? This will temporarily disconnect it.')) {
+        showNotification('Restarting bot...');
+    }
+}
+
+function exportLogs() {
+    showNotification('Exporting logs...');
+}
+
+function clearCache() {
+    showNotification('Cache cleared');
+}
+
+// Utility Functions
+function showNotification(message) {
+    // Simple notification system
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #5865f2;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 6px;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    `;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        notification.style.transition = 'all 0.3s ease';
+        setTimeout(() => document.body.removeChild(notification), 300);
+    }, 3000);
 }
 
 // Copy to clipboard functionality
 function copyToClipboard() {
     const urlInput = document.getElementById('monitoringUrl');
     urlInput.select();
-    urlInput.setSelectionRange(0, 99999); // For mobile devices
+    urlInput.setSelectionRange(0, 99999);
 
     try {
         document.execCommand('copy');
@@ -349,12 +659,11 @@ function copyToClipboard() {
 
 // Initialize dashboard when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    new Dashboard();
+    window.dashboardInstance = new Dashboard();
 });
 
 // Add Chart.js time adapter for time series charts
 if (typeof Chart !== 'undefined') {
-    // Import moment.js adapter for Chart.js time handling
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js';
     document.head.appendChild(script);

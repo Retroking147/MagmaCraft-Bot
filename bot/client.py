@@ -55,7 +55,21 @@ class DiscordBot(commands.Bot):
         await setup_commands(self)
         setup_events(self)
         
-
+        # Load music player
+        try:
+            from .music_player import setup as setup_music
+            setup_music(self)
+            logger.info("Music player loaded successfully")
+        except Exception as e:
+            logger.error(f"Failed to load music player: {e}")
+        
+        # Load moderation system
+        try:
+            from .moderation import setup as setup_moderation  
+            setup_moderation(self)
+            logger.info("Moderation system loaded successfully")
+        except Exception as e:
+            logger.error(f"Failed to load moderation system: {e}")
         
         # Sync slash commands
         try:

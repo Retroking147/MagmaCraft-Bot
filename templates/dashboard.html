@@ -10,23 +10,58 @@
 </head>
 <body>
     <div class="container">
-        <header class="header">
-            <div class="header-content">
-                <div class="bot-info">
-                    <div class="bot-avatar">
-                        <div class="avatar-circle">🤖</div>
-                        <div class="status-indicator" id="botStatus"></div>
-                    </div>
-                    <div class="bot-details">
-                        <h1 class="bot-name">Discord Bot Dashboard</h1>
-                        <p class="bot-subtitle">Minecraft Server Management & Statistics</p>
-                    </div>
+        <!-- Navigation Menu -->
+        <nav class="main-nav">
+            <div class="nav-brand">
+                <div class="bot-avatar-small">
+                    <div class="avatar-circle-small">🤖</div>
+                    <div class="status-indicator-small" id="navBotStatus"></div>
                 </div>
-                <div class="last-updated">
-                    <span id="lastUpdated">Loading...</span>
-                </div>
+                <span class="brand-text">Discord Bot Control Panel</span>
             </div>
-        </header>
+            <div class="nav-menu">
+                <button class="nav-item active" onclick="switchTab('dashboard')">
+                    <span class="nav-icon">📊</span>
+                    Dashboard
+                </button>
+                <button class="nav-item" onclick="switchTab('music')">
+                    <span class="nav-icon">🎵</span>
+                    Music
+                </button>
+                <button class="nav-item" onclick="switchTab('moderation')">
+                    <span class="nav-icon">🛡️</span>
+                    Moderation
+                </button>
+                <button class="nav-item" onclick="switchTab('minecraft')">
+                    <span class="nav-icon">⛏️</span>
+                    Minecraft
+                </button>
+                <button class="nav-item" onclick="switchTab('settings')">
+                    <span class="nav-icon">⚙️</span>
+                    Settings
+                </button>
+            </div>
+        </nav>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard-tab" class="tab-content active">
+            <header class="header">
+                <div class="header-content">
+                    <div class="bot-info">
+                        <div class="bot-avatar">
+                            <div class="avatar-circle">🤖</div>
+                            <div class="status-indicator" id="botStatus"></div>
+                        </div>
+                        <div class="bot-details">
+                            <h1 class="bot-name">Discord Bot Dashboard</h1>
+                            <p class="bot-subtitle">Advanced Discord Bot with ProBot Features</p>
+                        </div>
+                    </div>
+                    <div class="last-updated">
+                        <span id="lastUpdated">Loading...</span>
+                    </div>
+                </div>
+            </header>
 
         <div class="stats-grid">
             <!-- Main Statistics Cards -->
@@ -154,6 +189,330 @@
                     <p class="monitoring-note">
                         This endpoint returns bot health status for services like UptimeRobot.
                     </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Music Tab -->
+        <div id="music-tab" class="tab-content">
+            <div class="page-header">
+                <h2>🎵 Music Control</h2>
+                <p>Control music playback in voice channels</p>
+            </div>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <h3>🎶 Now Playing</h3>
+                        <div class="music-status" id="musicStatus">Not Playing</div>
+                    </div>
+                    <div class="music-player">
+                        <div class="song-info">
+                            <div class="song-title" id="songTitle">No song selected</div>
+                            <div class="song-artist" id="songArtist">-</div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress" id="musicProgress"></div>
+                        </div>
+                        <div class="music-controls">
+                            <button class="control-btn" onclick="previousTrack()">⏮️</button>
+                            <button class="control-btn primary" id="playPauseBtn" onclick="togglePlayPause()">▶️</button>
+                            <button class="control-btn" onclick="nextTrack()">⏭️</button>
+                            <button class="control-btn" onclick="toggleShuffle()">🔀</button>
+                            <button class="control-btn" onclick="toggleRepeat()">🔁</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <h3>📻 Add Music</h3>
+                    </div>
+                    <div class="music-add">
+                        <div class="input-group">
+                            <input type="text" id="musicUrl" placeholder="Enter YouTube URL or search term">
+                            <button onclick="addMusic()">Add</button>
+                        </div>
+                        <div class="quick-actions">
+                            <button onclick="joinVoice()">Join Voice</button>
+                            <button onclick="leaveVoice()">Leave Voice</button>
+                            <button onclick="clearQueue()">Clear Queue</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-card wide">
+                    <div class="feature-header">
+                        <h3>📜 Queue</h3>
+                        <div class="queue-info">
+                            <span id="queueCount">0 songs</span>
+                            <button onclick="shuffleQueue()">Shuffle Queue</button>
+                        </div>
+                    </div>
+                    <div class="queue-list" id="queueList">
+                        <div class="empty-queue">No songs in queue</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Moderation Tab -->
+        <div id="moderation-tab" class="tab-content">
+            <div class="page-header">
+                <h2>🛡️ Moderation Tools</h2>
+                <p>Manage your Discord server with advanced moderation features</p>
+            </div>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <h3>👤 User Management</h3>
+                    </div>
+                    <div class="moderation-form">
+                        <div class="input-group">
+                            <input type="text" id="userId" placeholder="User ID or @mention">
+                            <select id="actionType">
+                                <option value="kick">Kick</option>
+                                <option value="ban">Ban</option>
+                                <option value="timeout">Timeout</option>
+                                <option value="warn">Warn</option>
+                            </select>
+                        </div>
+                        <textarea id="reason" placeholder="Reason (optional)"></textarea>
+                        <button onclick="performModAction()">Execute Action</button>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <h3>📝 Auto Moderation</h3>
+                    </div>
+                    <div class="automod-settings">
+                        <div class="setting-item">
+                            <label>
+                                <input type="checkbox" id="autoDeleteSpam"> Auto-delete spam
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <label>
+                                <input type="checkbox" id="antiRaid"> Anti-raid protection
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <label>
+                                <input type="checkbox" id="badWordFilter"> Bad word filter
+                            </label>
+                        </div>
+                        <div class="setting-item">
+                            <label>
+                                <input type="checkbox" id="antiLink"> Anti-link protection
+                            </label>
+                        </div>
+                        <button onclick="saveAutoModSettings()">Save Settings</button>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <h3>📊 Moderation Stats</h3>
+                    </div>
+                    <div class="mod-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Warnings Today</span>
+                            <span class="stat-value" id="warningsToday">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Bans This Week</span>
+                            <span class="stat-value" id="bansWeek">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Active Timeouts</span>
+                            <span class="stat-value" id="activeTimeouts">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Messages Deleted</span>
+                            <span class="stat-value" id="deletedMessages">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-card wide">
+                    <div class="feature-header">
+                        <h3>📋 Recent Actions</h3>
+                    </div>
+                    <div class="action-log" id="actionLog">
+                        <div class="log-entry">
+                            <span class="log-time">2 minutes ago</span>
+                            <span class="log-action">Warned</span>
+                            <span class="log-user">User#1234</span>
+                            <span class="log-reason">Spam</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Minecraft Tab -->
+        <div id="minecraft-tab" class="tab-content">
+            <div class="page-header">
+                <h2>⛏️ Minecraft Management</h2>
+                <p>Advanced Minecraft server integration and management</p>
+            </div>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <h3>🖥️ Add Server</h3>
+                    </div>
+                    <div class="minecraft-form">
+                        <div class="input-group">
+                            <input type="text" id="serverIp" placeholder="Server IP">
+                            <input type="number" id="serverPort" placeholder="Port (25565)" value="25565">
+                        </div>
+                        <div class="input-group">
+                            <input type="text" id="statusChannelName" placeholder="Status Channel Name">
+                            <input type="text" id="countChannelName" placeholder="Player Count Channel Name">
+                        </div>
+                        <button onclick="addMinecraftServer()">Add Server Monitor</button>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <h3>⚙️ Server Actions</h3>
+                    </div>
+                    <div class="server-actions">
+                        <button onclick="forceUpdateCounters()">Force Update All</button>
+                        <button onclick="resetCounters()">Reset Counters</button>
+                        <button onclick="testConnections()">Test Connections</button>
+                        <button onclick="exportServerList()">Export Server List</button>
+                    </div>
+                </div>
+
+                <div class="feature-card wide">
+                    <div class="feature-header">
+                        <h3>📊 Monitored Servers</h3>
+                        <button onclick="refreshServerList()">Refresh</button>
+                    </div>
+                    <div class="server-list" id="minecraftServerList">
+                        <div class="loading">Loading servers...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings-tab" class="tab-content">
+            <div class="page-header">
+                <h2>⚙️ Bot Settings</h2>
+                <p>Configure your Discord bot settings and preferences</p>
+            </div>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <h3>🏠 Guild Settings</h3>
+                    </div>
+                    <div class="settings-form">
+                        <div class="setting-group">
+                            <label>Bot Prefix</label>
+                            <input type="text" id="botPrefix" value="!" maxlength="3">
+                        </div>
+                        <div class="setting-group">
+                            <label>Default Volume</label>
+                            <input type="range" id="defaultVolume" min="0" max="100" value="50">
+                            <span id="volumeDisplay">50%</span>
+                        </div>
+                        <div class="setting-group">
+                            <label>Auto Role</label>
+                            <select id="autoRole">
+                                <option value="">None</option>
+                                <option value="member">Member</option>
+                                <option value="verified">Verified</option>
+                            </select>
+                        </div>
+                        <button onclick="saveGuildSettings()">Save Settings</button>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <h3>📢 Welcome Settings</h3>
+                    </div>
+                    <div class="settings-form">
+                        <div class="setting-group">
+                            <label>
+                                <input type="checkbox" id="enableWelcome"> Enable Welcome Messages
+                            </label>
+                        </div>
+                        <div class="setting-group">
+                            <label>Welcome Channel</label>
+                            <select id="welcomeChannel">
+                                <option value="">Select Channel</option>
+                            </select>
+                        </div>
+                        <div class="setting-group">
+                            <label>Welcome Message</label>
+                            <textarea id="welcomeMessage" placeholder="Welcome {user} to {server}!"></textarea>
+                        </div>
+                        <button onclick="saveWelcomeSettings()">Save Settings</button>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <h3>🔧 System Settings</h3>
+                    </div>
+                    <div class="system-info">
+                        <div class="info-item">
+                            <span class="info-label">Bot Version</span>
+                            <span class="info-value">2.1.0</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">API Version</span>
+                            <span class="info-value">v10</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Python Version</span>
+                            <span class="info-value">3.11</span>
+                        </div>
+                        <div class="system-actions">
+                            <button onclick="restartBot()" class="danger">Restart Bot</button>
+                            <button onclick="exportLogs()">Export Logs</button>
+                            <button onclick="clearCache()">Clear Cache</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-card wide">
+                    <div class="feature-header">
+                        <h3>🔑 API Keys & Tokens</h3>
+                        <div class="security-notice">🔒 All tokens are encrypted and secure</div>
+                    </div>
+                    <div class="token-settings">
+                        <div class="token-item">
+                            <label>Discord Bot Token</label>
+                            <div class="token-input">
+                                <input type="password" id="discordToken" placeholder="••••••••••••••••">
+                                <button onclick="testToken('discord')">Test</button>
+                            </div>
+                        </div>
+                        <div class="token-item">
+                            <label>YouTube API Key</label>
+                            <div class="token-input">
+                                <input type="password" id="youtubeToken" placeholder="••••••••••••••••">
+                                <button onclick="testToken('youtube')">Test</button>
+                            </div>
+                        </div>
+                        <div class="token-item">
+                            <label>Spotify Client ID</label>
+                            <div class="token-input">
+                                <input type="password" id="spotifyToken" placeholder="••••••••••••••••">
+                                <button onclick="testToken('spotify')">Test</button>
+                            </div>
+                        </div>
+                        <button onclick="saveTokens()">Save All Tokens</button>
+                    </div>
                 </div>
             </div>
         </div>

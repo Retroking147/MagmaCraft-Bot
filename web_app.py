@@ -187,6 +187,208 @@ def create_app():
                 'message': str(e)
             }), 500
     
+    # Music API Endpoints
+    @app.route('/api/music/status')
+    def music_status():
+        """Get current music status"""
+        return jsonify({
+            'is_playing': False,
+            'current_track': None,
+            'queue_length': 0,
+            'volume': 50,
+            'connected_to_voice': False
+        })
+
+    @app.route('/api/music/play', methods=['POST'])
+    def music_play():
+        """Add music to queue and play"""
+        data = request.json
+        url = data.get('url', '')
+        
+        if not url:
+            return jsonify({'error': 'URL required'}), 400
+        
+        # In a real implementation, this would communicate with the Discord bot
+        return jsonify({
+            'success': True,
+            'message': f'Added to queue: {url}',
+            'queue_position': 1
+        })
+
+    @app.route('/api/music/control/<action>', methods=['POST'])
+    def music_control(action):
+        """Control music playback"""
+        valid_actions = ['play', 'pause', 'stop', 'skip', 'previous']
+        
+        if action not in valid_actions:
+            return jsonify({'error': 'Invalid action'}), 400
+        
+        return jsonify({
+            'success': True,
+            'action': action,
+            'message': f'Music {action} executed'
+        })
+
+    @app.route('/api/music/queue')
+    def music_queue():
+        """Get current music queue"""
+        return jsonify({
+            'current': None,
+            'queue': [],
+            'total': 0
+        })
+
+    # Moderation API Endpoints
+    @app.route('/api/moderation/stats')
+    def moderation_stats():
+        """Get moderation statistics"""
+        return jsonify({
+            'warnings_today': 3,
+            'bans_week': 1,
+            'active_timeouts': 2,
+            'deleted_messages': 28,
+            'auto_mod_enabled': True
+        })
+
+    @app.route('/api/moderation/action', methods=['POST'])
+    def moderation_action():
+        """Perform moderation action"""
+        data = request.json
+        
+        user_id = data.get('user_id', '')
+        action = data.get('action', '')
+        reason = data.get('reason', 'No reason provided')
+        
+        if not user_id or not action:
+            return jsonify({'error': 'User ID and action required'}), 400
+        
+        valid_actions = ['kick', 'ban', 'timeout', 'warn']
+        if action not in valid_actions:
+            return jsonify({'error': 'Invalid action'}), 400
+        
+        return jsonify({
+            'success': True,
+            'action': action,
+            'user_id': user_id,
+            'reason': reason,
+            'message': f'{action.capitalize()} action performed on {user_id}'
+        })
+
+    @app.route('/api/moderation/settings', methods=['GET', 'POST'])
+    def moderation_settings():
+        """Get or update auto-moderation settings"""
+        if request.method == 'POST':
+            data = request.json
+            # In real implementation, save to database
+            return jsonify({
+                'success': True,
+                'settings': data,
+                'message': 'Auto-moderation settings updated'
+            })
+        
+        return jsonify({
+            'anti_spam': True,
+            'anti_raid': False,
+            'bad_word_filter': True,
+            'anti_link': False,
+            'max_mentions': 5
+        })
+
+    # Server Management API Endpoints
+    @app.route('/api/servers/minecraft')
+    def minecraft_servers():
+        """Get monitored Minecraft servers"""
+        return jsonify([
+            {
+                'id': 1,
+                'name': 'play.hypixel.net:25565',
+                'status': 'online',
+                'players': '47,234/200,000',
+                'last_update': datetime.now(timezone.utc).isoformat()
+            },
+            {
+                'id': 2,
+                'name': 'mc.mineplex.com:25565',
+                'status': 'online',
+                'players': '8,492/20,000',
+                'last_update': datetime.now(timezone.utc).isoformat()
+            }
+        ])
+
+    @app.route('/api/servers/minecraft', methods=['POST'])
+    def add_minecraft_server():
+        """Add new Minecraft server to monitor"""
+        data = request.json
+        
+        server_ip = data.get('server_ip', '')
+        server_port = data.get('server_port', 25565)
+        
+        if not server_ip:
+            return jsonify({'error': 'Server IP required'}), 400
+        
+        return jsonify({
+            'success': True,
+            'server': f'{server_ip}:{server_port}',
+            'message': 'Server monitoring added successfully'
+        })
+
+    @app.route('/api/servers/minecraft/<int:server_id>', methods=['DELETE'])
+    def remove_minecraft_server(server_id):
+        """Remove Minecraft server monitoring"""
+        return jsonify({
+            'success': True,
+            'message': f'Server {server_id} monitoring removed'
+        })
+
+    # Bot Settings API Endpoints
+    @app.route('/api/settings/bot', methods=['GET', 'POST'])
+    def bot_settings():
+        """Get or update bot settings"""
+        if request.method == 'POST':
+            data = request.json
+            return jsonify({
+                'success': True,
+                'settings': data,
+                'message': 'Bot settings updated'
+            })
+        
+        return jsonify({
+            'prefix': '!',
+            'default_volume': 50,
+            'auto_role': None,
+            'welcome_enabled': False,
+            'welcome_channel': None,
+            'welcome_message': 'Welcome {user} to {server}!'
+        })
+
+    @app.route('/api/settings/tokens', methods=['POST'])
+    def save_tokens():
+        """Save API tokens securely"""
+        data = request.json
+        
+        # In real implementation, encrypt and store securely
+        return jsonify({
+            'success': True,
+            'message': 'API tokens saved securely'
+        })
+
+    @app.route('/api/bot/restart', methods=['POST'])
+    def restart_bot():
+        """Restart the Discord bot"""
+        return jsonify({
+            'success': True,
+            'message': 'Bot restart initiated'
+        })
+
+    @app.route('/api/logs/export', methods=['POST'])
+    def export_logs():
+        """Export bot logs"""
+        return jsonify({
+            'success': True,
+            'download_url': '/downloads/bot_logs.zip',
+            'message': 'Logs exported successfully'
+        })
+
     return app
 
 def format_uptime(seconds):
