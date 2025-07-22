@@ -3,11 +3,13 @@ Discord Bot Statistics Web Dashboard
 """
 import os
 from datetime import datetime, timezone, timedelta
-from flask import Flask, render_template, jsonify, redirect, url_for, request
+from flask import Flask, render_template, jsonify, redirect, url_for, request, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from models import db, BotStats, MinecraftServerStats, CommandUsage, BotUptime
 import json
+import requests
+from urllib.parse import urlencode
 
 def create_app():
     app = Flask(__name__)
@@ -31,17 +33,23 @@ def create_app():
     
     @app.route('/')
     def dashboard():
-        """Main dashboard page - redirects to server selection"""
+        """Main dashboard page - shows login if not authenticated"""
+        if 'user' not in session:
+            return render_template('login.html')
         return redirect(url_for('server_selection'))
     
     @app.route('/server-selection')
     def server_selection():
         """Server selection interface"""
+        if 'user' not in session:
+            return redirect(url_for('dashboard'))
         return render_template('server_selection.html')
     
     @app.route('/dashboard/<server_id>')
     def server_dashboard(server_id):
         """Individual server dashboard"""
+        if 'user' not in session:
+            return redirect(url_for('dashboard'))
         return render_template('dashboard.html', server_id=server_id)
     
     @app.route('/api/stats')
@@ -403,8 +411,21 @@ def create_app():
     @app.route('/api/auth/discord')
     def discord_auth():
         """Redirect to Discord OAuth"""
-        # In real implementation, generate OAuth URL
-        discord_oauth_url = "https://discord.com/oauth2/authorize?client_id=YOUR_BOT_ID&redirect_uri=YOUR_REDIRECT&response_type=code&scope=identify%20guilds"
+        client_id = os.environ.get('DISCORD_CLIENT_ID')
+        if not client_id:
+            return jsonify({'error': 'Discord OAuth not configured'}), 500
+        
+        # Get the current domain for redirect URI
+        redirect_uri = request.url_root + 'api/auth/callback'
+        
+        oauth_params = {
+            'client_id': client_id,
+            'redirect_uri': redirect_uri,
+            'response_type': 'code',
+            'scope': 'identify guilds'
+        }
+        
+        discord_oauth_url = f"https://discord.com/api/oauth2/authorize?{urlencode(oauth_params)}"
         return jsonify({
             'auth_url': discord_oauth_url
         })
@@ -413,50 +434,121 @@ def create_app():
     def auth_callback():
         """Handle Discord OAuth callback"""
         code = request.args.get('code')
-        if not code:
-            return jsonify({'error': 'No authorization code provided'}), 400
+        error = request.args.get('error')
         
-        # In real implementation, exchange code for tokens
-        return jsonify({
-            'success': True,
-            'user': {
-                'id': '123456789',
-                'username': 'Username',
-                'discriminator': '1234',
-                'avatar': 'avatar_hash'
-            },
-            'token': 'session_token'
-        })
+        if error:
+            return redirect(url_for('dashboard') + '?error=access_denied')
+        
+        if not code:
+            return redirect(url_for('dashboard') + '?error=no_code')
+        
+        client_id = os.environ.get('DISCORD_CLIENT_ID')
+        client_secret = os.environ.get('DISCORD_CLIENT_SECRET')
+        
+        if not client_id or not client_secret:
+            return redirect(url_for('dashboard') + '?error=oauth_not_configured')
+        
+        try:
+            # Exchange code for access token
+            token_data = {
+                'client_id': client_id,
+                'client_secret': client_secret,
+                'grant_type': 'authorization_code',
+                'code': code,
+                'redirect_uri': request.url_root + 'api/auth/callback'
+            }
+            
+            token_response = requests.post(
+                'https://discord.com/api/oauth2/token',
+                data=token_data,
+                headers={'Content-Type': 'application/x-www-form-urlencoded'}
+            )
+            
+            if token_response.status_code != 200:
+                return redirect(url_for('dashboard') + '?error=token_exchange_failed')
+            
+            token_json = token_response.json()
+            access_token = token_json.get('access_token')
+            
+            if not access_token:
+                return redirect(url_for('dashboard') + '?error=no_access_token')
+            
+            # Get user information
+            user_response = requests.get(
+                'https://discord.com/api/users/@me',
+                headers={'Authorization': f'Bearer {access_token}'}
+            )
+            
+            if user_response.status_code != 200:
+                return redirect(url_for('dashboard') + '?error=user_fetch_failed')
+            
+            user_data = user_response.json()
+            
+            # Store user in session
+            session['user'] = {
+                'id': user_data['id'],
+                'username': user_data['username'],
+                'discriminator': user_data.get('discriminator', '0'),
+                'avatar': user_data.get('avatar'),
+                'access_token': access_token
+            }
+            
+            return redirect(url_for('server_selection'))
+            
+        except Exception as e:
+            print(f"OAuth error: {e}")
+            return redirect(url_for('dashboard') + '?error=oauth_failed')
 
     @app.route('/api/user/servers')
     def user_servers():
         """Get user's Discord servers where bot is installed"""
-        return jsonify([
-            {
-                'id': '1',
-                'name': 'My Discord Server',
-                'icon': 'https://cdn.discordapp.com/icons/server1/icon.png',
-                'owner': True,
-                'permissions': 8,
-                'bot_installed': True
-            },
-            {
-                'id': '2',
-                'name': 'Gaming Community',
-                'icon': 'https://cdn.discordapp.com/icons/server2/icon.png',
-                'owner': False,
-                'permissions': 8,
-                'bot_installed': True
-            },
-            {
-                'id': '3',
-                'name': 'Dev Team',
-                'icon': 'https://cdn.discordapp.com/icons/server3/icon.png',
-                'owner': False,
-                'permissions': 8,
-                'bot_installed': True
-            }
-        ])
+        if 'user' not in session:
+            return jsonify({'error': 'Not authenticated'}), 401
+        
+        try:
+            access_token = session['user']['access_token']
+            
+            # Get user's servers
+            guilds_response = requests.get(
+                'https://discord.com/api/users/@me/guilds',
+                headers={'Authorization': f'Bearer {access_token}'}
+            )
+            
+            if guilds_response.status_code != 200:
+                return jsonify({'error': 'Failed to fetch servers'}), 500
+            
+            guilds = guilds_response.json()
+            
+            # Filter servers where user has manage permissions
+            managed_servers = []
+            for guild in guilds:
+                # Check if user has administrator or manage_guild permissions
+                permissions = int(guild.get('permissions', 0))
+                if permissions & 0x8 or permissions & 0x20:  # ADMINISTRATOR or MANAGE_GUILD
+                    icon_url = None
+                    if guild.get('icon'):
+                        icon_url = f"https://cdn.discordapp.com/icons/{guild['id']}/{guild['icon']}.png"
+                    
+                    managed_servers.append({
+                        'id': guild['id'],
+                        'name': guild['name'],
+                        'icon': icon_url,
+                        'owner': guild.get('owner', False),
+                        'permissions': permissions,
+                        'bot_installed': True  # Assume bot is installed for demo
+                    })
+            
+            return jsonify(managed_servers)
+            
+        except Exception as e:
+            print(f"Server fetch error: {e}")
+            return jsonify({'error': 'Failed to fetch servers'}), 500
+    
+    @app.route('/api/auth/logout', methods=['POST'])
+    def logout():
+        """Logout user and clear session"""
+        session.clear()
+        return jsonify({'success': True, 'message': 'Logged out successfully'})
 
     @app.route('/api/servers/<server_id>')
     def server_info(server_id):

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Bot Dashboard - Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="bot-logo">
+                    <div class="logo-icon">🤖</div>
+                    <h1>Discord Bot Dashboard</h1>
+                    <p>Professional Discord Bot Management</p>
+                </div>
+            </div>
+            
+            <div class="login-content">
+                <div class="features-preview">
+                    <h2>Manage Your Discord Bot</h2>
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <span class="feature-icon">🎵</span>
+                            <span>Music Player Controls</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">🛡️</span>
+                            <span>Advanced Moderation</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">⛏️</span>
+                            <span>Minecraft Server Monitoring</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">📊</span>
+                            <span>Real-time Analytics</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">⚙️</span>
+                            <span>Bot Configuration</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="login-section">
+                    <h3>Login with Discord</h3>
+                    <p class="login-description">
+                        Sign in with your Discord account to manage servers where this bot is installed.
+                    </p>
+                    
+                    <button id="loginButton" class="discord-login-btn" onclick="loginWithDiscord()">
+                        <svg class="discord-icon" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419-.0190 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9460 2.4189-2.1568 2.4189Z"/>
+                        </svg>
+                        Continue with Discord
+                    </button>
+                    
+                    <div class="login-info">
+                        <p class="info-text">
+                            By logging in, you agree to our terms of service. We only access your basic Discord information and server list.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="login-footer">
+            <p>&copy; 2025 Discord Bot Dashboard. Professional bot management made simple.</p>
+        </div>
+    </div>
+
+    <script>
+        async function loginWithDiscord() {
+            const button = document.getElementById('loginButton');
+            button.disabled = true;
+            button.innerHTML = '<span class="loading-spinner"></span> Redirecting...';
+            
+            try {
+                const response = await fetch('/api/auth/discord');
+                const data = await response.json();
+                
+                if (data.auth_url) {
+                    window.location.href = data.auth_url;
+                } else {
+                    throw new Error('Failed to get authentication URL');
+                }
+            } catch (error) {
+                console.error('Login failed:', error);
+                button.disabled = false;
+                button.innerHTML = `
+                    <svg class="discord-icon" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419-.0190 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9460 2.4189-2.1568 2.4189Z"/>
+                    </svg>
+                    Continue with Discord
+                `;
+                alert('Login failed. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>
