@@ -38,6 +38,20 @@ def create_app():
             return render_template('login.html')
         return redirect(url_for('server_selection'))
     
+    @app.route('/dev-login')
+    def dev_login():
+        """Development login bypass for testing"""
+        if os.environ.get('FLASK_ENV') == 'development':
+            session['user'] = {
+                'id': '123456789',
+                'username': 'DevUser',
+                'discriminator': '0001',
+                'avatar': None,
+                'access_token': 'dev-token'
+            }
+            return redirect(url_for('server_selection'))
+        return redirect(url_for('dashboard'))
+    
     @app.route('/server-selection')
     def server_selection():
         """Server selection interface"""
@@ -411,24 +425,29 @@ def create_app():
     @app.route('/api/auth/discord')
     def discord_auth():
         """Redirect to Discord OAuth"""
-        client_id = os.environ.get('DISCORD_CLIENT_ID')
-        if not client_id:
-            return jsonify({'error': 'Discord OAuth not configured'}), 500
-        
-        # Get the current domain for redirect URI
-        redirect_uri = request.url_root + 'api/auth/callback'
-        
-        oauth_params = {
-            'client_id': client_id,
-            'redirect_uri': redirect_uri,
-            'response_type': 'code',
-            'scope': 'identify guilds'
-        }
-        
-        discord_oauth_url = f"https://discord.com/api/oauth2/authorize?{urlencode(oauth_params)}"
-        return jsonify({
-            'auth_url': discord_oauth_url
-        })
+        try:
+            client_id = os.environ.get('DISCORD_CLIENT_ID')
+            if not client_id:
+                print("Error: DISCORD_CLIENT_ID not found in environment variables")
+                return jsonify({'error': 'Discord OAuth not configured'}), 500
+            
+            # Get the current domain for redirect URI
+            redirect_uri = request.url_root + 'api/auth/callback'
+            
+            oauth_params = {
+                'client_id': client_id,
+                'redirect_uri': redirect_uri,
+                'response_type': 'code',
+                'scope': 'identify guilds'
+            }
+            
+            discord_oauth_url = f"https://discord.com/api/oauth2/authorize?{urlencode(oauth_params)}"
+            return jsonify({
+                'auth_url': discord_oauth_url
+            })
+        except Exception as e:
+            print(f"Discord OAuth error: {e}")
+            return jsonify({'error': f'OAuth initialization failed: {str(e)}'}), 500
 
     @app.route('/api/auth/callback')
     def auth_callback():

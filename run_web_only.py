@@ -7,6 +7,9 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+# Set development environment for testing
+os.environ['FLASK_ENV'] = 'development'
+
 def create_application():
     try:
         from web_app import create_app
