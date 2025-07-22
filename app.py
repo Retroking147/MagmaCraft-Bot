@@ -95,6 +95,7 @@ def login():
 @app.route('/dev-login')
 def dev_login():
     """Development login bypass"""
+    session.clear()  # Clear any existing session
     session['user_id'] = '123456789'
     session['user_info'] = {
         'username': 'Developer',
@@ -102,7 +103,8 @@ def dev_login():
         'avatar': None,
         'id': '123456789'
     }
-    return redirect(url_for('home'))
+    # Don't set selected_server here - let the user go through server selection
+    return redirect(url_for('server_selection'))
 
 @app.route('/api/auth/discord')
 def discord_auth():
