@@ -220,7 +220,7 @@ def create_app():
     @app.route('/api/music/play', methods=['POST'])
     def music_play():
         """Add music to queue and play"""
-        data = request.json
+        data = request.json or {}
         url = data.get('url', '')
         
         if not url:
@@ -271,7 +271,7 @@ def create_app():
     @app.route('/api/moderation/action', methods=['POST'])
     def moderation_action():
         """Perform moderation action"""
-        data = request.json
+        data = request.json or {}
         
         user_id = data.get('user_id', '')
         action = data.get('action', '')
@@ -296,7 +296,7 @@ def create_app():
     def moderation_settings():
         """Get or update auto-moderation settings"""
         if request.method == 'POST':
-            data = request.json
+            data = request.json or {}
             # In real implementation, save to database
             return jsonify({
                 'success': True,
@@ -336,7 +336,7 @@ def create_app():
     @app.route('/api/servers/minecraft', methods=['POST'])
     def add_minecraft_server():
         """Add new Minecraft server to monitor"""
-        data = request.json
+        data = request.json or {}
         
         server_ip = data.get('server_ip', '')
         server_port = data.get('server_port', 25565)
@@ -363,7 +363,7 @@ def create_app():
     def bot_settings():
         """Get or update bot settings"""
         if request.method == 'POST':
-            data = request.json
+            data = request.json or {}
             return jsonify({
                 'success': True,
                 'settings': data,
@@ -382,7 +382,7 @@ def create_app():
     @app.route('/api/settings/tokens', methods=['POST'])
     def save_tokens():
         """Save API tokens securely"""
-        data = request.json
+        data = request.json or {}
         
         # In real implementation, encrypt and store securely
         return jsonify({
@@ -603,7 +603,7 @@ def create_app():
     @app.route('/api/music/volume', methods=['POST'])
     def set_music_volume():
         """Set music volume"""
-        data = request.json
+        data = request.json or {}
         volume = data.get('volume', 50)
         
         return jsonify({
