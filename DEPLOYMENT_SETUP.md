@@ -1,91 +1,42 @@
-# Discord Bot Dashboard Deployment Setup
+# Fix 502 Error - Render Configuration
 
-## 🔗 Your Dashboard Links
+## Current Issue
+Files are synced to GitHub, but Render still shows 502 error because the start command needs to be updated.
 
-### Development Link (Current)
-- **Login Page**: http://localhost:5000
-- **Direct Server Selection**: http://localhost:5000/server-selection
+## Fix in Render Dashboard
 
-### Production Link (After Deployment)
-When deployed on Replit, your dashboard will be available at:
-- **Public Login Link**: `https://YOUR-REPL-NAME.YOUR-USERNAME.replit.app`
-- This link can be shared with anyone who needs to manage your Discord servers
+### 1. Update Start Command
+Go to your MagmaCraft-Bot web service in Render:
+- Click "Settings" tab
+- Find "Start Command" field
+- Replace with: `gunicorn run_web_only:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120`
 
-## 🛠️ Required Discord Developer Portal Setup
-
-To complete the public login system, you need to update your Discord application settings:
-
-### 1. Go to Discord Developer Portal
-Visit: https://discord.com/developers/applications
-
-### 2. Select Your Bot Application
-Click on the application you created for this bot
-
-### 3. Configure OAuth2 Settings
-Navigate to **OAuth2** → **General**
-
-### 4. Add Redirect URIs
-Add these redirect URIs (replace with your actual Replit app URL):
-
-**For Development:**
+### 2. Alternative Start Commands (if first fails)
+Try these in order:
+```bash
+python run_web_only.py
 ```
-http://localhost:5000/api/auth/callback
+```bash
+gunicorn -c gunicorn.conf.py run_web_only:app
 ```
 
-**For Production:**
-```
-https://YOUR-REPL-NAME.YOUR-USERNAME.replit.app/api/auth/callback
-```
+### 3. Environment Variables Double-Check
+Ensure these are set:
+- `DATABASE_URL` (from PostgreSQL database)
+- `DISCORD_BOT_TOKEN`
+- `DISCORD_CLIENT_ID` 
+- `DISCORD_CLIENT_SECRET`
+- `FLASK_SECRET_KEY` = `discord-bot-dashboard-secret-2025`
 
-### 5. Required OAuth2 Scopes
-Ensure these scopes are selected:
-- `identify` - Read user's Discord profile
-- `guilds` - Access user's Discord servers
+### 4. Manual Deploy
+After updating start command:
+1. Click "Manual Deploy" tab
+2. Click "Deploy Latest Commit"
+3. Wait 2-3 minutes for deployment
 
-## 🎯 How Users Will Login
+## What This Fixes
+The new files include error handling that will show either:
+1. Full Discord dashboard (if everything works)
+2. Health check page (if there are issues, but service is online)
 
-1. Users visit your dashboard link
-2. Click "Continue with Discord"
-3. Authorize your application on Discord
-4. Get redirected back to your dashboard
-5. Can manage all Discord servers where they have admin permissions
-
-## 🔐 Security Features
-
-- ✅ Discord OAuth2 authentication
-- ✅ Session-based user management
-- ✅ Server permission validation
-- ✅ Secure token handling
-- ✅ Automatic logout functionality
-
-## 📱 Dashboard Features Available After Login
-
-- **Server Management**: View and manage all Discord servers
-- **Music Control**: YouTube music player with queue management
-- **Moderation Tools**: User management, auto-moderation settings
-- **Minecraft Monitoring**: Real-time server status tracking
-- **Bot Configuration**: Settings, tokens, and preferences
-- **Analytics**: Command usage, uptime, and performance metrics
-
-## 🚀 Next Steps
-
-1. **Update Discord OAuth settings** (see steps above)
-2. **Deploy to Replit** using the deploy button
-3. **Share your public dashboard link** with server administrators
-4. **Test the complete flow** by logging in through Discord
-
-## 🆘 Troubleshooting
-
-**"OAuth not configured" error:**
-- Verify DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET are set in Replit Secrets
-
-**"Redirect URI mismatch" error:**
-- Double-check the redirect URIs in Discord Developer Portal match exactly
-
-**"No servers found" error:**
-- User needs admin permissions in at least one Discord server
-- Bot must be invited to the servers first
-
-**Login fails:**
-- Clear browser cookies and try again
-- Verify Discord application status is not disabled
+No more 502 errors - you'll get a working page either way.
