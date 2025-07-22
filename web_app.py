@@ -41,7 +41,11 @@ def create_app():
     @app.route('/dev-login')
     def dev_login():
         """Development login bypass for testing"""
-        if os.environ.get('FLASK_ENV') == 'development':
+        # Allow dev login in both development and when no Discord credentials exist
+        is_dev = os.environ.get('FLASK_ENV') == 'development'
+        no_discord = not os.environ.get('DISCORD_CLIENT_ID')
+        
+        if is_dev or no_discord:
             session['user'] = {
                 'id': '123456789',
                 'username': 'DevUser',

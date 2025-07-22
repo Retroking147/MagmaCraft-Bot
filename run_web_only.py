@@ -7,8 +7,10 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Set development environment for testing
-os.environ['FLASK_ENV'] = 'development'
+# Set environment based on deployment context
+if not os.environ.get('FLASK_ENV'):
+    # Default to development for local testing
+    os.environ['FLASK_ENV'] = 'development'
 
 def create_application():
     try:

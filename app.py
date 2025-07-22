@@ -1,93 +1,126 @@
 """
-Combined Discord Bot and Web Dashboard Application
+Production entry point for Discord Bot Dashboard
+This ensures the application works on Render with proper configuration
 """
 import os
-import asyncio
-import logging
-from threading import Thread
-from datetime import datetime, timezone
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('bot.log'),
-        logging.StreamHandler()
-    ]
-)
+# Force production environment for Render
+if 'RENDER' in os.environ or 'render.com' in os.environ.get('RENDER_EXTERNAL_URL', ''):
+    os.environ['FLASK_ENV'] = 'production'
 
-logger = logging.getLogger(__name__)
-
-def run_web_app():
-    """Run the Flask web dashboard"""
+def create_app():
+    """Create the Flask application"""
     try:
-        from web_app import create_app
-        app = create_app()
-        logger.info("Starting Flask web server on port 5000...")
-        app.run(host='0.0.0.0', port=5000, debug=False, use_reloader=False, threaded=True)
-    except Exception as e:
-        logger.error(f"Failed to start web app: {e}")
-        import traceback
-        traceback.print_exc()
-
-async def run_discord_bot():
-    """Run the Discord bot"""
-    try:
-        from bot.client import DiscordBot
+        # Try to import the full web application
+        from web_app import create_app as create_main_app
+        print("Loading full Discord Bot Dashboard...")
+        app = create_main_app()
         
-        # Get bot token from environment variables
-        token = os.getenv('DISCORD_BOT_TOKEN')
-        
-        if not token:
-            logger.error("DISCORD_BOT_TOKEN not found in environment variables!")
-            logger.error("Web dashboard will still be available at http://localhost:5000")
-            logger.error("Add your Discord bot token to run the full application.")
-            return
-        
-        # Initialize bot
-        bot = DiscordBot()
-        
-        try:
-            logger.info("Starting Discord bot...")
+        # Test database connection
+        with app.app_context():
+            from models import db
+            db.create_all()
             
-            # Track bot startup
-            if bot.stats_tracker:
-                bot.stats_tracker.track_bot_start()
-            
-            await bot.start(token)
-        except Exception as e:
-            logger.error(f"Failed to start Discord bot: {e}")
-        finally:
-            if not bot.is_closed():
-                # Track bot shutdown
-                if bot.stats_tracker:
-                    bot.stats_tracker.track_bot_shutdown()
-                await bot.close()
-                
+        print("✅ Full application loaded successfully!")
+        return app
+        
     except Exception as e:
-        logger.error(f"Error in Discord bot setup: {e}")
+        print(f"❌ Failed to load main application: {e}")
+        print("🔄 Loading simplified version for debugging...")
+        
+        # Fallback to simple version with better error reporting
+        from flask import Flask, jsonify, render_template_string
+        
+        app = Flask(__name__)
+        app.secret_key = os.environ.get("FLASK_SECRET_KEY", "fallback-secret-key")
+        
+        @app.route('/')
+        def index():
+            return render_template_string("""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Discord Bot Dashboard - Configuration Required</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 40px; background: #2c2f33; color: white; }
+                    .container { max-width: 800px; margin: 0 auto; }
+                    .error { background: #f04747; padding: 20px; border-radius: 8px; margin: 20px 0; }
+                    .fix { background: #43b581; padding: 20px; border-radius: 8px; margin: 20px 0; }
+                    .code { background: #23272a; padding: 10px; border-radius: 4px; font-family: monospace; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>🤖 Discord Bot Dashboard</h1>
+                    
+                    <div class="error">
+                        <h3>❌ Configuration Error</h3>
+                        <p>The dashboard couldn't start because of missing configuration.</p>
+                        <p><strong>Error:</strong> {{ error_details }}</p>
+                    </div>
+                    
+                    <div class="fix">
+                        <h3>🔧 How to Fix This</h3>
+                        <p>In your Render dashboard, add these environment variables:</p>
+                        <div class="code">
+                            DATABASE_URL=postgresql://... (auto-provided by Render)<br>
+                            FLASK_SECRET_KEY=your_secret_key<br>
+                            DISCORD_CLIENT_ID=your_discord_app_id<br>
+                            DISCORD_CLIENT_SECRET=your_discord_secret<br>
+                            DISCORD_BOT_TOKEN=your_bot_token
+                        </div>
+                        <p>After adding these, redeploy your service in Render.</p>
+                    </div>
+                    
+                    <div class="fix">
+                        <h3>📋 Current Environment Status</h3>
+                        <ul>
+                            <li>DATABASE_URL: {{ 'SET' if database_url else 'MISSING' }}</li>
+                            <li>FLASK_SECRET_KEY: {{ 'SET' if flask_secret else 'MISSING' }}</li>
+                            <li>DISCORD_CLIENT_ID: {{ 'SET' if discord_id else 'MISSING' }}</li>
+                            <li>DISCORD_CLIENT_SECRET: {{ 'SET' if discord_secret else 'MISSING' }}</li>
+                            <li>DISCORD_BOT_TOKEN: {{ 'SET' if bot_token else 'MISSING' }}</li>
+                        </ul>
+                    </div>
+                    
+                    <p><a href="/api/health" style="color: #7289da;">Check API Health</a></p>
+                </div>
+            </body>
+            </html>
+            """, 
+                error_details=str(e),
+                database_url=bool(os.environ.get('DATABASE_URL')),
+                flask_secret=bool(os.environ.get('FLASK_SECRET_KEY')),
+                discord_id=bool(os.environ.get('DISCORD_CLIENT_ID')),
+                discord_secret=bool(os.environ.get('DISCORD_CLIENT_SECRET')),
+                bot_token=bool(os.environ.get('DISCORD_BOT_TOKEN'))
+            )
+        
+        @app.route('/api/health')
+        def health():
+            return jsonify({
+                "status": "partial",
+                "message": "Fallback mode - configuration required",
+                "error": str(e),
+                "required_env_vars": {
+                    "DATABASE_URL": bool(os.environ.get('DATABASE_URL')),
+                    "FLASK_SECRET_KEY": bool(os.environ.get('FLASK_SECRET_KEY')),
+                    "DISCORD_CLIENT_ID": bool(os.environ.get('DISCORD_CLIENT_ID')),
+                    "DISCORD_CLIENT_SECRET": bool(os.environ.get('DISCORD_CLIENT_SECRET')),
+                    "DISCORD_BOT_TOKEN": bool(os.environ.get('DISCORD_BOT_TOKEN'))
+                }
+            })
+        
+        return app
 
-async def main():
-    """Main application entry point"""
-    logger.info("Starting Discord Bot Dashboard Application...")
-    
-    # Start web dashboard in a separate thread
-    web_thread = Thread(target=run_web_app, daemon=True)
-    web_thread.start()
-    logger.info("Web dashboard started at http://localhost:5000")
-    
-    # Start Discord bot
-    await run_discord_bot()
+# Create the application instance
+app = create_app()
 
-if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        logger.info("Application stopped by user")
-    except Exception as e:
-        logger.error(f"Unexpected error: {e}")
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    print(f"🚀 Starting Discord Bot Dashboard on port {port}")
+    app.run(host='0.0.0.0', port=port, debug=False)
