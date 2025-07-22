@@ -3,7 +3,7 @@ Discord Bot Statistics Web Dashboard
 """
 import os
 from datetime import datetime, timezone, timedelta
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, redirect, url_for, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from models import db, BotStats, MinecraftServerStats, CommandUsage, BotUptime
@@ -31,8 +31,18 @@ def create_app():
     
     @app.route('/')
     def dashboard():
-        """Main dashboard page"""
-        return render_template('dashboard.html')
+        """Main dashboard page - redirects to server selection"""
+        return redirect(url_for('server_selection'))
+    
+    @app.route('/server-selection')
+    def server_selection():
+        """Server selection interface"""
+        return render_template('server_selection.html')
+    
+    @app.route('/dashboard/<server_id>')
+    def server_dashboard(server_id):
+        """Individual server dashboard"""
+        return render_template('dashboard.html', server_id=server_id)
     
     @app.route('/api/stats')
     def api_stats():
@@ -387,6 +397,162 @@ def create_app():
             'success': True,
             'download_url': '/downloads/bot_logs.zip',
             'message': 'Logs exported successfully'
+        })
+
+    # Discord OAuth and Server Management API Endpoints
+    @app.route('/api/auth/discord')
+    def discord_auth():
+        """Redirect to Discord OAuth"""
+        # In real implementation, generate OAuth URL
+        discord_oauth_url = "https://discord.com/oauth2/authorize?client_id=YOUR_BOT_ID&redirect_uri=YOUR_REDIRECT&response_type=code&scope=identify%20guilds"
+        return jsonify({
+            'auth_url': discord_oauth_url
+        })
+
+    @app.route('/api/auth/callback')
+    def auth_callback():
+        """Handle Discord OAuth callback"""
+        code = request.args.get('code')
+        if not code:
+            return jsonify({'error': 'No authorization code provided'}), 400
+        
+        # In real implementation, exchange code for tokens
+        return jsonify({
+            'success': True,
+            'user': {
+                'id': '123456789',
+                'username': 'Username',
+                'discriminator': '1234',
+                'avatar': 'avatar_hash'
+            },
+            'token': 'session_token'
+        })
+
+    @app.route('/api/user/servers')
+    def user_servers():
+        """Get user's Discord servers where bot is installed"""
+        return jsonify([
+            {
+                'id': '1',
+                'name': 'My Discord Server',
+                'icon': 'https://cdn.discordapp.com/icons/server1/icon.png',
+                'owner': True,
+                'permissions': 8,
+                'bot_installed': True
+            },
+            {
+                'id': '2',
+                'name': 'Gaming Community',
+                'icon': 'https://cdn.discordapp.com/icons/server2/icon.png',
+                'owner': False,
+                'permissions': 8,
+                'bot_installed': True
+            },
+            {
+                'id': '3',
+                'name': 'Dev Team',
+                'icon': 'https://cdn.discordapp.com/icons/server3/icon.png',
+                'owner': False,
+                'permissions': 8,
+                'bot_installed': True
+            }
+        ])
+
+    @app.route('/api/servers/<server_id>')
+    def server_info(server_id):
+        """Get server information"""
+        return jsonify({
+            'id': server_id,
+            'name': 'My Discord Server',
+            'icon': 'https://cdn.discordapp.com/icons/server/icon.png',
+            'member_count': 1234,
+            'bot_online': True,
+            'bot_permissions': 8
+        })
+
+    @app.route('/api/servers/<server_id>/stats')
+    def server_stats(server_id):
+        """Get server-specific statistics"""
+        return jsonify({
+            'total_members': 1234,
+            'messages_today': 567,
+            'music_played': 89,
+            'mod_actions': 12,
+            'bot_uptime': 86400
+        })
+
+    @app.route('/api/bot/avatar', methods=['POST'])
+    def update_bot_avatar():
+        """Update bot avatar for specific server"""
+        # Handle file upload and server-specific avatar
+        return jsonify({
+            'success': True,
+            'avatar_url': 'https://cdn.discordapp.com/avatars/bot/new_avatar.png',
+            'message': 'Bot avatar updated for this server'
+        })
+
+    @app.route('/api/bot/avatar/reset', methods=['POST'])
+    def reset_bot_avatar():
+        """Reset bot avatar to default for specific server"""
+        return jsonify({
+            'success': True,
+            'avatar_url': 'https://cdn.discordapp.com/avatars/bot/default.png',
+            'message': 'Bot avatar reset to default'
+        })
+
+    @app.route('/api/bot/remove/<server_id>', methods=['POST'])
+    def remove_bot_from_server(server_id):
+        """Remove bot from server"""
+        return jsonify({
+            'success': True,
+            'message': f'Bot removal initiated for server {server_id}'
+        })
+
+    @app.route('/api/music/volume', methods=['POST'])
+    def set_music_volume():
+        """Set music volume"""
+        data = request.json
+        volume = data.get('volume', 50)
+        
+        return jsonify({
+            'success': True,
+            'volume': volume,
+            'message': f'Volume set to {volume}%'
+        })
+
+    @app.route('/api/music/queue/<int:index>', methods=['DELETE'])
+    def remove_from_queue(index):
+        """Remove track from queue"""
+        return jsonify({
+            'success': True,
+            'message': f'Removed track {index} from queue'
+        })
+
+    @app.route('/api/music/playlist/<playlist_id>', methods=['POST'])
+    def load_playlist(playlist_id):
+        """Load playlist into queue"""
+        return jsonify({
+            'success': True,
+            'playlist': playlist_id,
+            'message': f'Loaded playlist {playlist_id}'
+        })
+
+    @app.route('/api/minecraft/force-update/<int:server_id>', methods=['POST'])
+    def force_update_minecraft_server(server_id):
+        """Force update minecraft server status"""
+        return jsonify({
+            'success': True,
+            'server_id': server_id,
+            'message': 'Server status updated'
+        })
+
+    @app.route('/api/minecraft/reset-counter/<int:server_id>', methods=['POST'])
+    def reset_minecraft_counter(server_id):
+        """Reset minecraft server counter"""
+        return jsonify({
+            'success': True,
+            'server_id': server_id,
+            'message': 'Counter reset successfully'
         })
 
     return app

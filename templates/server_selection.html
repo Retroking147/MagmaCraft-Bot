@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Bot Dashboard - Server Selection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/server_selection.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Server Selection Sidebar -->
+        <div class="server-sidebar">
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <img src="https://cdn.discordapp.com/avatars/123456789/avatar.png" alt="User Avatar">
+                </div>
+                <div class="user-info">
+                    <div class="username">Username#1234</div>
+                    <div class="user-status">Online</div>
+                </div>
+            </div>
+            
+            <div class="server-list">
+                <div class="server-section">
+                    <h3>Your Servers</h3>
+                    <div class="server-grid">
+                        <div class="server-circle active" data-server-id="1">
+                            <img src="https://cdn.discordapp.com/icons/server1/icon.png" alt="Server 1">
+                            <div class="server-tooltip">My Discord Server</div>
+                        </div>
+                        <div class="server-circle" data-server-id="2">
+                            <img src="https://cdn.discordapp.com/icons/server2/icon.png" alt="Server 2">
+                            <div class="server-tooltip">Gaming Community</div>
+                        </div>
+                        <div class="server-circle" data-server-id="3">
+                            <img src="https://cdn.discordapp.com/icons/server3/icon.png" alt="Server 3">
+                            <div class="server-tooltip">Dev Team</div>
+                        </div>
+                        <div class="server-circle add-server">
+                            <span>+</span>
+                            <div class="server-tooltip">Add Bot to Server</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar-footer">
+                <button class="logout-btn">Logout</button>
+            </div>
+        </div>
+        
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <div class="server-header">
+                <div class="server-info">
+                    <div class="server-icon">
+                        <img src="https://cdn.discordapp.com/icons/server1/icon.png" alt="Server Icon">
+                    </div>
+                    <div class="server-details">
+                        <h1>My Discord Server</h1>
+                        <p>Bot Status: <span class="status-online">Online</span></p>
+                    </div>
+                </div>
+                
+                <div class="server-actions">
+                    <button class="btn-secondary" onclick="changeBotAvatar()">Change Bot Avatar</button>
+                    <button class="btn-danger" onclick="removeBot()">Remove Bot</button>
+                </div>
+            </div>
+            
+            <!-- Navigation Tabs -->
+            <nav class="tab-navigation">
+                <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+                <button class="tab-btn" data-tab="music">Music</button>
+                <button class="tab-btn" data-tab="moderation">Moderation</button>
+                <button class="tab-btn" data-tab="minecraft">Minecraft</button>
+                <button class="tab-btn" data-tab="settings">Settings</button>
+            </nav>
+            
+            <!-- Tab Content -->
+            <div class="tab-content">
+                <!-- Dashboard Tab -->
+                <div class="tab-panel active" id="dashboard">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">👥</div>
+                            <div class="stat-info">
+                                <h3>Total Members</h3>
+                                <p class="stat-value">1,234</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">💬</div>
+                            <div class="stat-info">
+                                <h3>Messages Today</h3>
+                                <p class="stat-value">567</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🎵</div>
+                            <div class="stat-info">
+                                <h3>Music Played</h3>
+                                <p class="stat-value">89</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🛡️</div>
+                            <div class="stat-info">
+                                <h3>Mod Actions</h3>
+                                <p class="stat-value">12</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-panels">
+                        <div class="panel">
+                            <h3>Recent Activity</h3>
+                            <div class="activity-feed">
+                                <div class="activity-item">
+                                    <span class="activity-time">2 min ago</span>
+                                    <span class="activity-text">User banned for spam</span>
+                                </div>
+                                <div class="activity-item">
+                                    <span class="activity-time">5 min ago</span>
+                                    <span class="activity-text">Music queue cleared</span>
+                                </div>
+                                <div class="activity-item">
+                                    <span class="activity-time">10 min ago</span>
+                                    <span class="activity-text">Auto-moderation blocked spam</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="panel">
+                            <h3>Quick Actions</h3>
+                            <div class="quick-actions">
+                                <button class="action-btn">Clear Music Queue</button>
+                                <button class="action-btn">Toggle Auto-Mod</button>
+                                <button class="action-btn">Export Logs</button>
+                                <button class="action-btn">Restart Bot</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Music Tab -->
+                <div class="tab-panel" id="music">
+                    <div class="music-controls">
+                        <div class="current-track">
+                            <div class="track-info">
+                                <div class="track-thumbnail">
+                                    <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/mqdefault.jpg" alt="Current Track">
+                                </div>
+                                <div class="track-details">
+                                    <h4>Never Gonna Give You Up</h4>
+                                    <p>Rick Astley</p>
+                                </div>
+                            </div>
+                            <div class="playback-controls">
+                                <button class="control-btn" onclick="musicControl('previous')">⏮</button>
+                                <button class="control-btn play-pause" onclick="musicControl('pause')">⏸</button>
+                                <button class="control-btn" onclick="musicControl('skip')">⏭</button>
+                                <button class="control-btn" onclick="musicControl('stop')">⏹</button>
+                            </div>
+                        </div>
+                        
+                        <div class="volume-control">
+                            <span>Volume:</span>
+                            <input type="range" id="volume-slider" min="0" max="100" value="50">
+                            <span id="volume-value">50%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="music-sections">
+                        <div class="section">
+                            <h3>Add to Queue</h3>
+                            <div class="add-music">
+                                <input type="text" id="music-url" placeholder="YouTube URL or search term" class="music-input">
+                                <button onclick="addToQueue()" class="btn-primary">Add to Queue</button>
+                            </div>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>Current Queue</h3>
+                            <div class="queue-list">
+                                <div class="queue-item">
+                                    <div class="queue-thumbnail">
+                                        <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/mqdefault.jpg" alt="Track">
+                                    </div>
+                                    <div class="queue-info">
+                                        <h4>Never Gonna Give You Up</h4>
+                                        <p>Rick Astley • 3:32</p>
+                                    </div>
+                                    <button class="remove-btn" onclick="removeFromQueue(1)">✕</button>
+                                </div>
+                                <div class="queue-item">
+                                    <div class="queue-thumbnail">
+                                        <img src="https://img.youtube.com/vi/y6120QOlsfU/mqdefault.jpg" alt="Track">
+                                    </div>
+                                    <div class="queue-info">
+                                        <h4>Darude - Sandstorm</h4>
+                                        <p>Darude • 3:53</p>
+                                    </div>
+                                    <button class="remove-btn" onclick="removeFromQueue(2)">✕</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>Saved Playlists</h3>
+                            <div class="playlist-grid">
+                                <div class="playlist-card">
+                                    <h4>Chill Vibes</h4>
+                                    <p>15 tracks</p>
+                                    <button onclick="loadPlaylist('chill')" class="btn-secondary">Load</button>
+                                </div>
+                                <div class="playlist-card">
+                                    <h4>Gaming Mix</h4>
+                                    <p>23 tracks</p>
+                                    <button onclick="loadPlaylist('gaming')" class="btn-secondary">Load</button>
+                                </div>
+                                <div class="playlist-card add-playlist">
+                                    <span>+</span>
+                                    <p>Create Playlist</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Moderation Tab -->
+                <div class="tab-panel" id="moderation">
+                    <div class="moderation-sections">
+                        <div class="section">
+                            <h3>Quick Actions</h3>
+                            <div class="mod-actions">
+                                <div class="action-group">
+                                    <label for="target-user">Target User:</label>
+                                    <input type="text" id="target-user" placeholder="User ID or mention" class="mod-input">
+                                </div>
+                                <div class="action-group">
+                                    <label for="mod-reason">Reason:</label>
+                                    <input type="text" id="mod-reason" placeholder="Reason for action" class="mod-input">
+                                </div>
+                                <div class="action-buttons">
+                                    <button onclick="moderateUser('warn')" class="btn-warning">Warn</button>
+                                    <button onclick="moderateUser('timeout')" class="btn-orange">Timeout</button>
+                                    <button onclick="moderateUser('kick')" class="btn-danger">Kick</button>
+                                    <button onclick="moderateUser('ban')" class="btn-danger">Ban</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>Auto-Moderation Settings</h3>
+                            <div class="automod-settings">
+                                <div class="setting-item">
+                                    <label class="switch">
+                                        <input type="checkbox" id="anti-spam" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                    <div class="setting-info">
+                                        <h4>Anti-Spam Protection</h4>
+                                        <p>Automatically detect and remove spam messages</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="setting-item">
+                                    <label class="switch">
+                                        <input type="checkbox" id="bad-word-filter" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                    <div class="setting-info">
+                                        <h4>Bad Word Filter</h4>
+                                        <p>Filter inappropriate language</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="setting-item">
+                                    <label class="switch">
+                                        <input type="checkbox" id="anti-raid">
+                                        <span class="slider"></span>
+                                    </label>
+                                    <div class="setting-info">
+                                        <h4>Anti-Raid Protection</h4>
+                                        <p>Protect against mass joins and raids</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="setting-item">
+                                    <label class="switch">
+                                        <input type="checkbox" id="anti-link">
+                                        <span class="slider"></span>
+                                    </label>
+                                    <div class="setting-info">
+                                        <h4>Link Filter</h4>
+                                        <p>Block unauthorized links</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <button onclick="saveAutomodSettings()" class="btn-primary">Save Settings</button>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>Recent Mod Actions</h3>
+                            <div class="mod-log">
+                                <div class="log-item">
+                                    <div class="log-time">2 min ago</div>
+                                    <div class="log-action warn">Warning</div>
+                                    <div class="log-details">User#1234 warned for spam</div>
+                                </div>
+                                <div class="log-item">
+                                    <div class="log-time">10 min ago</div>
+                                    <div class="log-action timeout">Timeout</div>
+                                    <div class="log-details">User#5678 timed out for 10 minutes</div>
+                                </div>
+                                <div class="log-item">
+                                    <div class="log-time">1 hour ago</div>
+                                    <div class="log-action ban">Ban</div>
+                                    <div class="log-details">User#9012 banned for harassment</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Minecraft Tab -->
+                <div class="tab-panel" id="minecraft">
+                    <div class="minecraft-sections">
+                        <div class="section">
+                            <h3>Monitored Servers</h3>
+                            <div class="server-list">
+                                <div class="minecraft-server">
+                                    <div class="server-info">
+                                        <h4>play.hypixel.net:25565</h4>
+                                        <p class="server-status online">Online • 47,234/200,000 players</p>
+                                    </div>
+                                    <div class="server-actions">
+                                        <button onclick="forceUpdateServer(1)" class="btn-secondary">Force Update</button>
+                                        <button onclick="resetServerCounter(1)" class="btn-warning">Reset Counter</button>
+                                        <button onclick="removeServer(1)" class="btn-danger">Remove</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="minecraft-server">
+                                    <div class="server-info">
+                                        <h4>mc.mineplex.com:25565</h4>
+                                        <p class="server-status online">Online • 8,492/20,000 players</p>
+                                    </div>
+                                    <div class="server-actions">
+                                        <button onclick="forceUpdateServer(2)" class="btn-secondary">Force Update</button>
+                                        <button onclick="resetServerCounter(2)" class="btn-warning">Reset Counter</button>
+                                        <button onclick="removeServer(2)" class="btn-danger">Remove</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="add-server">
+                                <h4>Add New Server</h4>
+                                <div class="server-form">
+                                    <input type="text" id="server-ip" placeholder="Server IP" class="server-input">
+                                    <input type="number" id="server-port" placeholder="Port (default: 25565)" value="25565" class="server-input">
+                                    <button onclick="addMinecraftServer()" class="btn-primary">Add Server</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Settings Tab -->
+                <div class="tab-panel" id="settings">
+                    <div class="settings-sections">
+                        <div class="section">
+                            <h3>Bot Configuration</h3>
+                            <div class="config-grid">
+                                <div class="config-item">
+                                    <label for="bot-prefix">Command Prefix:</label>
+                                    <input type="text" id="bot-prefix" value="!" class="config-input">
+                                </div>
+                                
+                                <div class="config-item">
+                                    <label for="default-volume">Default Music Volume:</label>
+                                    <input type="range" id="default-volume" min="0" max="100" value="50" class="config-slider">
+                                    <span id="default-volume-value">50%</span>
+                                </div>
+                                
+                                <div class="config-item">
+                                    <label class="switch">
+                                        <input type="checkbox" id="welcome-enabled">
+                                        <span class="slider"></span>
+                                    </label>
+                                    <div class="setting-info">
+                                        <label for="welcome-enabled">Welcome Messages</label>
+                                        <p>Send welcome messages to new members</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>Bot Avatar</h3>
+                            <div class="avatar-section">
+                                <div class="current-avatar">
+                                    <img id="bot-avatar" src="https://cdn.discordapp.com/avatars/bot/avatar.png" alt="Bot Avatar">
+                                </div>
+                                <div class="avatar-actions">
+                                    <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
+                                    <button onclick="document.getElementById('avatar-upload').click()" class="btn-secondary">Upload New Avatar</button>
+                                    <button onclick="resetBotAvatar()" class="btn-warning">Reset to Default</button>
+                                </div>
+                                <p class="avatar-note">Avatar changes apply only to this server</p>
+                            </div>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>API Tokens</h3>
+                            <div class="token-section">
+                                <div class="token-item">
+                                    <label for="youtube-token">YouTube API Key:</label>
+                                    <input type="password" id="youtube-token" placeholder="Enter YouTube API key" class="token-input">
+                                </div>
+                                
+                                <div class="token-item">
+                                    <label for="spotify-token">Spotify API Key:</label>
+                                    <input type="password" id="spotify-token" placeholder="Enter Spotify API key" class="token-input">
+                                </div>
+                                
+                                <button onclick="saveTokens()" class="btn-primary">Save Tokens</button>
+                            </div>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>Danger Zone</h3>
+                            <div class="danger-actions">
+                                <button onclick="exportLogs()" class="btn-warning">Export Bot Logs</button>
+                                <button onclick="restartBot()" class="btn-danger">Restart Bot</button>
+                                <button onclick="removeBotFromServer()" class="btn-danger">Remove Bot from Server</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Server Modal -->
+    <div id="add-server-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddServerModal()">&times;</span>
+            <h2>Add Bot to Server</h2>
+            <p>Click the button below to invite the bot to a new server:</p>
+            <a href="https://discord.com/oauth2/authorize?client_id=YOUR_BOT_ID&permissions=8&scope=bot" target="_blank" class="btn-primary">
+                Invite Bot to Server
+            </a>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/server_selection.js') }}"></script>
+</body>
+</html>

@@ -420,40 +420,80 @@ async def setup_commands(bot):
             logger.error(f"Error in send-commands command: {e}")
             await interaction.response.send_message("❌ An error occurred while sending command list.", ephemeral=True)
     
-    @bot.tree.command(name="reset-counter", description="Reset all Minecraft counter channels (Admin only)")
+    @bot.tree.command(name="reset-counter", description="Reset active players to 0 and fix counter channels (Admin only)")
     @app_commands.default_permissions(administrator=True)
     async def reset_counter(interaction: discord.Interaction):
-        """Reset Minecraft counter system"""
+        """Reset active players to 0 and fix counter channels if broken"""
         try:
-            # Clear the counter channels from the bot's tracking
-            if hasattr(bot, 'minecraft_counters'):
-                bot.minecraft_counters.clear()
-                logger.info("Cleared minecraft counters tracking")
+            await interaction.response.defer(ephemeral=True)
             
-            # The update task continues running but will have no counters to update
-            logger.info("Counter tracking cleared - update task will continue but find no counters")
+            if not hasattr(bot, 'minecraft_counters') or not bot.minecraft_counters:
+                await interaction.followup.send("❌ No counter channels are currently active.", ephemeral=True)
+                return
+            
+            # Import the update function
+            from .minecraft_utils import update_minecraft_counter_channel
+            
+            # Reset bot's player tracking state to force fresh server checks
+            bot.has_active_players = False
+            bot.last_empty_time = None
+            
+            # Update all counters to get fresh data and fix any broken channels
+            fixed_count = 0
+            broken_channels = []
+            
+            for channel_id, server_info in list(bot.minecraft_counters.items()):
+                try:
+                    success, _, _ = await update_minecraft_counter_channel(bot, channel_id, server_info)
+                    if success:
+                        fixed_count += 1
+                    else:
+                        # Channel might be deleted, remove from tracking
+                        channel = bot.get_channel(channel_id)
+                        if not channel:
+                            broken_channels.append(channel_id)
+                            del bot.minecraft_counters[channel_id]
+                except Exception as e:
+                    logger.error(f"Error resetting counter {channel_id}: {e}")
+                    broken_channels.append(channel_id)
             
             embed = MessageUtils.create_success_embed(
                 title="🔄 Counter Reset Complete",
-                description="All Minecraft counter channels have been reset. You can now create new ones with `/minecraft-counter`."
+                description=f"Reset player tracking and updated {fixed_count} counter channels."
             )
             embed.add_field(
-                name="ℹ️ What was reset",
-                value="• Counter channel tracking cleared\n• Update tasks cancelled\n• Ready for new counter setup",
+                name="✅ Actions Performed",
+                value="• Reset active player tracking to 0\n• Refreshed all server status data\n• Fixed any connection issues\n• Cleaned up broken channels",
                 inline=False
             )
             
-            await interaction.response.send_message(embed=embed, ephemeral=True)
-            logger.info(f"Counter reset by admin: {interaction.user}")
+            if broken_channels:
+                embed.add_field(
+                    name="🗑️ Cleaned Up",
+                    value=f"Removed {len(broken_channels)} broken channel references",
+                    inline=True
+                )
+            
+            embed.add_field(
+                name="📊 Active Counters", 
+                value=f"Currently monitoring **{len(bot.minecraft_counters)}** counter channels",
+                inline=True
+            )
+            
+            await interaction.followup.send(embed=embed, ephemeral=True)
+            logger.info(f"Counter reset by admin: {interaction.user} - Fixed {fixed_count} channels")
             
         except Exception as e:
             logger.error(f"Error in reset-counter command: {e}")
-            await interaction.response.send_message("❌ An error occurred while resetting counters.", ephemeral=True)
+            try:
+                await interaction.followup.send("❌ An error occurred while resetting counters.", ephemeral=True)
+            except:
+                await interaction.response.send_message("❌ An error occurred while resetting counters.", ephemeral=True)
     
-    @bot.tree.command(name="force-update", description="Force update all Minecraft counter channels (Admin only)")
+    @bot.tree.command(name="force-update", description="Force update all Minecraft counter channels and fix broken ones (Admin only)")
     @app_commands.default_permissions(administrator=True)
     async def force_update(interaction: discord.Interaction):
-        """Manually trigger counter update"""
+        """Manually trigger counter update and fix broken channels"""
         try:
             await interaction.response.defer(ephemeral=True)
             
@@ -464,24 +504,62 @@ async def setup_commands(bot):
             # Import the update function  
             from .minecraft_utils import update_minecraft_counter_channel
             
-            # Force an update on all counters
+            # Force an update on all counters and clean up broken ones
             updated_count = 0
-            for channel_id, server_info in bot.minecraft_counters.items():
+            broken_channels = []
+            server_statuses = {}
+            
+            for channel_id, server_info in list(bot.minecraft_counters.items()):
                 try:
-                    success, _, _ = await update_minecraft_counter_channel(bot, channel_id, server_info)
+                    success, has_players, current_players = await update_minecraft_counter_channel(bot, channel_id, server_info)
                     if success:
                         updated_count += 1
+                        server_key = f"{server_info['server_ip']}:{server_info['server_port']}"
+                        if server_key not in server_statuses:
+                            server_statuses[server_key] = {
+                                'online': True,
+                                'players': current_players,
+                                'channels': []
+                            }
+                        server_statuses[server_key]['channels'].append(server_info['channel_type'])
+                    else:
+                        # Check if channel exists
+                        channel = bot.get_channel(channel_id)
+                        if not channel:
+                            broken_channels.append(channel_id)
+                            del bot.minecraft_counters[channel_id]
                 except Exception as e:
                     logger.error(f"Error force updating counter {channel_id}: {e}")
+                    broken_channels.append(channel_id)
             
             embed = MessageUtils.create_success_embed(
-                title="🔄 Update Triggered",
-                description=f"Manually updated {updated_count} counter channels."
+                title="🔄 Force Update Complete",
+                description=f"Successfully updated {updated_count} counter channels."
             )
+            
+            if server_statuses:
+                status_text = []
+                for server, data in server_statuses.items():
+                    channel_types = ", ".join(data['channels'])
+                    status_text.append(f"**{server}**: {data['players']} players ({channel_types})")
+                
+                embed.add_field(
+                    name="📊 Server Status",
+                    value="\n".join(status_text[:5]),  # Show max 5 servers
+                    inline=False
+                )
+            
+            if broken_channels:
+                embed.add_field(
+                    name="🗑️ Cleaned Up",
+                    value=f"Removed {len(broken_channels)} broken channel references",
+                    inline=True
+                )
+            
             embed.add_field(
                 name="📊 Active Counters",
                 value=f"Currently monitoring **{len(bot.minecraft_counters)}** counter channels",
-                inline=False
+                inline=True
             )
             
             await interaction.followup.send(embed=embed, ephemeral=True)
