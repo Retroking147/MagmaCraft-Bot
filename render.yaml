@@ -2,12 +2,12 @@ services:
   - type: web
     name: discord-bot-dashboard
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r production_requirements.txt
     startCommand: gunicorn --config gunicorn.conf.py simple_app:app
     plan: free
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11.4
+        value: 3.11.9
       - key: FLASK_ENV
         value: production
       - key: DATABASE_URL
