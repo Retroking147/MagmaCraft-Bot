@@ -1,48 +1,41 @@
-# 🎯 Final Render Deployment Settings
+# Get Database Connection String
 
-## GitHub Branch Configuration
-- **Branch**: `main` (default and recommended)
-- **Auto-Deploy**: Yes (updates automatically when you push changes)
+## Manual DATABASE_URL Setup
 
-## Render Service Configuration
+Since the dropdown isn't appearing, you need to manually get the connection string:
 
-### Basic Settings
-- **Name**: `discord-bot-dashboard`
-- **Environment**: `Python 3`
-- **Branch**: `main`
-- **Build Command**: `pip install -r requirements.txt`
-- **Start Command**: `python run_web_only.py`
+### Step 1: Get Database Connection Info
+1. Go to your PostgreSQL database (not the web service)
+2. Click on your database name in the left sidebar
+3. Look for **"Connections"** or **"Info"** tab
+4. Copy the **"External Database URL"** or **"Connection String"**
 
-### Plan Selection
-- **Instance Type**: `Free` 
-- **Region**: `Oregon (US West)` or closest to your users
-
-### Environment Variables (Add in Render Dashboard)
+It will look like:
 ```
-DISCORD_BOT_TOKEN = your_actual_bot_token
-DISCORD_CLIENT_ID = your_actual_client_id
-DISCORD_CLIENT_SECRET = your_actual_client_secret
-FLASK_SECRET_KEY = discord-bot-dashboard-secret-2025
+postgresql://username:password@hostname:port/database_name
 ```
 
-### Database (Render will create automatically)
-- **Type**: PostgreSQL
-- **Plan**: Free
-- **Name**: `discord-bot-db`
+### Step 2: Add to Web Service
+1. Go back to your MagmaCraft-Bot web service
+2. Environment tab
+3. Paste the connection string in the DATABASE_URL value field
+4. Click "Save Changes"
 
-## 🚀 Deployment Steps Summary
+### Step 3: Alternative - Environment Variable Format
+If you see separate connection details, format them as:
+```
+postgresql://[user]:[password]@[host]:[port]/[database]
+```
 
-1. **Export to GitHub**: Use `main` branch
-2. **Connect to Render**: Select your repository
-3. **Configure settings**: Use values above
-4. **Add environment variables**: Your Discord secrets
-5. **Deploy**: Render builds and launches automatically
+Example:
+```
+postgresql://magmacraft_user:abc123@dpg-xyz.oregon-postgres.render.com:5432/magmacraft_bot
+```
 
-## ✅ Your Final URL
-After deployment: `https://discord-bot-dashboard.onrender.com`
+### Step 4: Redeploy
+After adding DATABASE_URL:
+1. Go to "Manual Deploy" tab
+2. Click "Deploy Latest Commit"
+3. Wait for deployment to complete
 
-## 🔧 Discord OAuth Update
-Add this redirect URI in Discord Developer Portal:
-`https://discord-bot-dashboard.onrender.com/api/auth/callback`
-
-The `main` branch is the standard default branch that Render expects. Once deployed, your dashboard will be live and accessible worldwide on the free tier.
+This will connect your Discord dashboard to the database and fix the 502 error.
