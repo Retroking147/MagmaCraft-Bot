@@ -38,6 +38,9 @@ def create_app():
         app = Flask(__name__)
         app.secret_key = os.environ.get("FLASK_SECRET_KEY", "fallback-secret-key")
         
+        # Store the error for the fallback routes
+        error_message = str(e)
+        
         @app.route('/')
         def index():
             return render_template_string("""
@@ -92,7 +95,7 @@ def create_app():
             </body>
             </html>
             """, 
-                error_details=str(e),
+                error_details=error_message,
                 database_url=bool(os.environ.get('DATABASE_URL')),
                 flask_secret=bool(os.environ.get('FLASK_SECRET_KEY')),
                 discord_id=bool(os.environ.get('DISCORD_CLIENT_ID')),
@@ -105,7 +108,7 @@ def create_app():
             return jsonify({
                 "status": "partial",
                 "message": "Fallback mode - configuration required",
-                "error": str(e),
+                "error": error_message,
                 "required_env_vars": {
                     "DATABASE_URL": bool(os.environ.get('DATABASE_URL')),
                     "FLASK_SECRET_KEY": bool(os.environ.get('FLASK_SECRET_KEY')),
