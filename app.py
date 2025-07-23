@@ -16,6 +16,15 @@ DISCORD_BOT_TOKEN = os.environ.get('DISCORD_BOT_TOKEN')
 
 @app.route('/')
 def home():
+    """Main entry point - redirect to proper login flow"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    # If logged in, redirect to dashboard
+    return redirect(url_for('dashboard'))
+
+@app.route('/dashboard')
+def dashboard():
     """Enhanced main dashboard with server selection"""
     if 'user_id' not in session:
         return redirect(url_for('login'))
@@ -47,11 +56,6 @@ def home():
                          user=session.get('user_info', {}),
                          guilds=user_guilds)
 
-@app.route('/server-selection')
-def server_selection():
-    """Redirect to main dashboard"""
-    return redirect(url_for('home'))
-
 @app.route('/select-server/<server_id>')
 def select_server(server_id):
     """Select a server and go to dashboard"""
@@ -64,9 +68,9 @@ def select_server(server_id):
     
     if selected_server:
         session['selected_server'] = selected_server
-        return redirect(url_for('home'))
+        return redirect(url_for('dashboard'))
     
-    return redirect(url_for('server_selection'))
+    return redirect(url_for('dashboard'))
 
 @app.route('/login')
 def login():
@@ -85,7 +89,7 @@ def dev_login():
         'id': '123456789'
     }
     # Don't set selected_server here - let the user go through server selection
-    return redirect(url_for('server_selection'))
+    return redirect(url_for('dashboard'))
 
 @app.route('/api/auth/discord')
 def discord_auth():

@@ -1047,33 +1047,10 @@
             }
         }
         
-        // Load data when tabs are switched
+        // Load data when tabs are switched - DISABLED to prevent API spam
         function initializeTabData() {
-            // Set up tab switching with data loading
-            const tabBtns = document.querySelectorAll('.tab-btn');
-            
-            tabBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const targetTab = this.getAttribute('data-tab');
-                    
-                    // Load data based on active tab
-                    switch(targetTab) {
-                        case 'music':
-                            loadMusicQueue();
-                            updateVolumeSlider();
-                            break;
-                        case 'moderation':
-                            loadModerationLogs();
-                            break;
-                        case 'minecraft':
-                            loadMinecraftServers();
-                            break;
-                        case 'settings':
-                            loadBotSettings();
-                            break;
-                    }
-                });
-            });
+            // Just basic tab switching without data loading
+            console.log('Tab data initialization disabled to prevent API spam');
         }
         
         // Tab switching functionality
@@ -1100,14 +1077,16 @@
         let gaugeCharts = {};
         let activityChart, commandChart, minecraftChart;
         
-        // Initialize enhanced dashboard when DOM loads
+        // Initialize enhanced dashboard when DOM loads - MINIMAL to prevent API spam
         document.addEventListener('DOMContentLoaded', function() {
             initializeEnhancedDashboard();
             initializeTabData();
-            loadDashboardData();
+            // ONLY load dashboard data once on page load
+            setTimeout(() => {
+                loadDashboardData();
+            }, 1000); // Small delay to ensure charts are ready
             
-            // Auto-refresh every 2 minutes to prevent API spam
-            setInterval(loadDashboardData, 120000);
+            // NO auto-refresh to prevent API spam
         });
         
         function initializeEnhancedDashboard() {
@@ -1266,7 +1245,7 @@
             try {
                 console.log('Loading enhanced dashboard data...');
                 
-                // Load main stats
+                // Load main stats ONLY ONCE - no auto refresh
                 const statsResponse = await fetch('/api/stats');
                 const statsData = await statsResponse.json();
                 
@@ -1277,7 +1256,7 @@
                     updateMinecraftStats(statsData.data);
                 }
                 
-                // Load minecraft history data
+                // Load minecraft history data ONLY ONCE
                 const historyResponse = await fetch('/api/minecraft-history');
                 const historyData = await historyResponse.json();
                 
@@ -1285,7 +1264,7 @@
                     updateMinecraftChart(historyData.data);
                 }
                 
-                // Generate activity timeline data
+                // Generate activity timeline data - local only
                 updateActivityChart();
                 
                 console.log('Dashboard data loaded successfully');
