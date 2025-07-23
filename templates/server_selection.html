@@ -1077,16 +1077,16 @@
         let gaugeCharts = {};
         let activityChart, commandChart, minecraftChart;
         
-        // Initialize enhanced dashboard when DOM loads - MINIMAL to prevent API spam
+        // Initialize enhanced dashboard when DOM loads - NO API CALLS TO PREVENT SPAM
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize charts with static data only
             initializeEnhancedDashboard();
             initializeTabData();
-            // ONLY load dashboard data once on page load
-            setTimeout(() => {
-                loadDashboardData();
-            }, 1000); // Small delay to ensure charts are ready
             
-            // NO auto-refresh to prevent API spam
+            // Load static demo data instead of API calls
+            loadStaticDemoData();
+            
+            // COMPLETELY DISABLED: No API calls, no auto-refresh, no intervals
         });
         
         function initializeEnhancedDashboard() {
@@ -1241,37 +1241,38 @@
             }
         }
         
-        async function loadDashboardData() {
-            try {
-                console.log('Loading enhanced dashboard data...');
-                
-                // Load main stats ONLY ONCE - no auto refresh
-                const statsResponse = await fetch('/api/stats');
-                const statsData = await statsResponse.json();
-                
-                if (statsData.status === 'success') {
-                    updateQuickStats(statsData.data);
-                    updateGauges(statsData.data);
-                    updateCommandChart(statsData.data);
-                    updateMinecraftStats(statsData.data);
+        function loadStaticDemoData() {
+            console.log('Loading static demo data...');
+            
+            // Static demo data - NO API CALLS
+            const demoData = {
+                guilds_joined: 42,
+                total_commands_used: 1337,
+                minecraft_counter_updates: 856,
+                uptime: {
+                    uptime_percentage: 99.7,
+                    formatted_current: '72h 15m'
+                },
+                minecraft_stats: {
+                    max_players_seen: 67
                 }
-                
-                // Load minecraft history data ONLY ONCE
-                const historyResponse = await fetch('/api/minecraft-history');
-                const historyData = await historyResponse.json();
-                
-                if (historyData.status === 'success') {
-                    updateMinecraftChart(historyData.data);
-                }
-                
-                // Generate activity timeline data - local only
-                updateActivityChart();
-                
-                console.log('Dashboard data loaded successfully');
-                
-            } catch (error) {
-                console.error('Error loading enhanced dashboard data:', error);
-            }
+            };
+            
+            // Update interface with static data
+            updateQuickStats(demoData);
+            updateGauges(demoData);
+            updateCommandChart(demoData);
+            updateMinecraftStats(demoData);
+            updateActivityChart();
+            
+            // Static minecraft history data
+            const demoHistory = {
+                labels: ['6h ago', '5h ago', '4h ago', '3h ago', '2h ago', '1h ago', 'Now'],
+                data: [23, 31, 28, 35, 42, 38, 29]
+            };
+            updateMinecraftChart(demoHistory);
+            
+            console.log('Static demo data loaded successfully');
         }
         
         function updateQuickStats(data) {

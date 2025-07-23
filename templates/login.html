@@ -73,9 +73,10 @@
     </div>
 
     <script>
-        async function loginWithDiscord() {
-            const button = document.getElementById('loginButton');
-            button.disabled = true;
+        function loginWithDiscord() {
+            // Redirect to Discord OAuth
+            window.location.href = '/api/auth/discord';
+        }
             button.innerHTML = '<span class="loading-spinner"></span> Redirecting...';
             
             try {
