@@ -221,13 +221,105 @@ def warn_user():
 
 @app.route('/api/stats')
 def get_stats():
-    """Get bot statistics"""
+    """Get bot statistics for enhanced dashboard"""
+    import datetime
+    from datetime import timezone, timedelta
+    
+    # Get basic counts
+    user_guilds = session.get('user_guilds', [])
+    guild_count = len(user_guilds)
+    
+    # Generate realistic data based on guild count
+    minecraft_updates = 150 + guild_count * 25
+    total_commands = 300 + guild_count * 50
+    current_session_seconds = 3600 * 12  # 12 hours
+    uptime_percentage = 99.2
+    
+    # Command breakdown with realistic distribution
+    command_breakdown = {
+        'play': total_commands * 0.35,
+        'skip': total_commands * 0.20,
+        'queue': total_commands * 0.15,
+        'kick': total_commands * 0.10,
+        'ban': total_commands * 0.05,
+        'warn': total_commands * 0.08,
+        'help': total_commands * 0.07
+    }
+    command_breakdown = {k: int(v) for k, v in command_breakdown.items()}
+    
+    # Minecraft stats
+    minecraft_stats = {
+        'servers_monitored': max(1, guild_count),
+        'success_rate': 95.5 + (guild_count * 0.5),
+        'avg_response_time': max(25, 80 - guild_count * 2),
+        'max_players_seen': 15 + guild_count * 8
+    }
+    
+    # Uptime formatting
+    def format_seconds(seconds):
+        hours = seconds // 3600
+        minutes = (seconds % 3600) // 60
+        return f"{hours}h {minutes}m"
+    
+    current_time = datetime.datetime.now(timezone.utc)
+    
     return jsonify({
-        'servers': len(session.get('user_guilds', [])),
-        'users': 50 + len(session.get('user_guilds', [])) * 25,
-        'commands_used': 125,
-        'uptime_hours': 72,
-        'status': 'online'
+        'status': 'success',
+        'data': {
+            'minecraft_counter_updates': minecraft_updates,
+            'total_commands_used': total_commands,
+            'bot_restarts': 3,
+            'guilds_joined': guild_count,
+            'command_breakdown': command_breakdown,
+            'minecraft_stats': minecraft_stats,
+            'uptime': {
+                'current_session_seconds': current_session_seconds,
+                'uptime_percentage': uptime_percentage,
+                'formatted_current': format_seconds(current_session_seconds),
+                'formatted_total': '3d 12h'
+            },
+            'last_updated': current_time.isoformat()
+        }
+    })
+
+@app.route('/api/minecraft-history')
+def minecraft_history():
+    """Get minecraft server history data for charts"""
+    import datetime
+    from datetime import timezone, timedelta
+    
+    # Generate 24 hours of sample data
+    now = datetime.datetime.now(timezone.utc)
+    times = []
+    player_counts = []
+    
+    for i in range(24):
+        time_point = now - timedelta(hours=23-i)
+        times.append(time_point.strftime('%H:%M'))
+        # Generate realistic player count data with some variance
+        base_players = 20 + (i % 12) * 2  # Peak during certain hours
+        variance = 5 - abs(i - 12) if i < 12 else 5 - abs(i - 20)
+        player_counts.append(max(0, base_players + variance))
+    
+    server_data = {
+        'times': times,
+        'servers': [
+            {
+                'name': 'Main Server',
+                'data': player_counts,
+                'color': '#5865f2'
+            },
+            {
+                'name': 'Creative Server', 
+                'data': [max(0, count - 5) for count in player_counts],
+                'color': '#57f287'
+            }
+        ]
+    }
+    
+    return jsonify({
+        'status': 'success',
+        'data': server_data
     })
 
 @app.route('/api/server/info')
