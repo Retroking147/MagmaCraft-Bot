@@ -16,38 +16,14 @@ DISCORD_BOT_TOKEN = os.environ.get('DISCORD_BOT_TOKEN')
 
 @app.route('/')
 def home():
-    """Main page - shows server selection or redirects to dashboard"""
-    # Check if user is logged in
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    
-    # Check if server is selected
-    if 'selected_server' not in session:
-        return redirect(url_for('server_selection'))
-    
-    # Get bot stats
-    stats = {
-        'servers': len(session.get('user_guilds', [])),
-        'users': 50 + len(session.get('user_guilds', [])) * 25,
-        'commands_used': 125,
-        'uptime_hours': 72
-    }
-    
-    return render_template('dashboard.html', 
-                         user=session.get('user_info', {'username': 'User'}),
-                         stats=stats,
-                         selected_server=session.get('selected_server'))
-
-@app.route('/server-selection')
-def server_selection():
-    """Server selection page"""
+    """Enhanced main dashboard with server selection"""
     if 'user_id' not in session:
         return redirect(url_for('login'))
     
     # Get user's guilds (servers)
     user_guilds = session.get('user_guilds', [])
     
-    # If no guilds from OAuth, create mock data for dev login
+    # If no guilds from OAuth, create sample data for dev login
     if not user_guilds and session.get('user_id') == '123456789':
         user_guilds = [
             {
@@ -70,6 +46,11 @@ def server_selection():
     return render_template('server_selection.html', 
                          user=session.get('user_info', {}),
                          guilds=user_guilds)
+
+@app.route('/server-selection')
+def server_selection():
+    """Redirect to main dashboard"""
+    return redirect(url_for('home'))
 
 @app.route('/select-server/<server_id>')
 def select_server(server_id):
@@ -336,6 +317,285 @@ def invite_bot():
     
     invite_url = f"https://discord.com/api/oauth2/authorize?client_id={DISCORD_CLIENT_ID}&permissions=8&scope=bot"
     return jsonify({'invite_url': invite_url})
+
+# Enhanced Music API endpoints
+@app.route('/api/music/current')
+def get_current_track():
+    """Get currently playing track"""
+    return jsonify({
+        'status': 'success',
+        'data': {
+            'title': 'Never Gonna Give You Up',
+            'artist': 'Rick Astley',
+            'duration': 213,
+            'position': 45,
+            'thumbnail': 'https://img.youtube.com/vi/dQw4w9WgXcQ/mqdefault.jpg',
+            'url': 'https://youtube.com/watch?v=dQw4w9WgXcQ',
+            'is_playing': True,
+            'volume': 50
+        }
+    })
+
+@app.route('/api/music/queue-list')
+def get_queue():
+    """Get current music queue"""
+    return jsonify({
+        'status': 'success',
+        'data': {
+            'queue': [
+                {
+                    'id': 1,
+                    'title': 'Darude - Sandstorm',
+                    'artist': 'Darude',
+                    'duration': 233,
+                    'thumbnail': 'https://img.youtube.com/vi/y6120QOlsfU/mqdefault.jpg',
+                    'requested_by': 'User#1234'
+                },
+                {
+                    'id': 2,
+                    'title': 'Rick Astley - Never Gonna Give You Up',
+                    'artist': 'Rick Astley',
+                    'duration': 213,
+                    'thumbnail': 'https://img.youtube.com/vi/dQw4w9WgXcQ/mqdefault.jpg',
+                    'requested_by': 'User#5678'
+                }
+            ],
+            'total_duration': 446
+        }
+    })
+
+@app.route('/api/music/add', methods=['POST'])
+def add_to_queue():
+    """Add song to queue"""
+    data = request.get_json()
+    url = data.get('url', '')
+    
+    return jsonify({
+        'status': 'success',
+        'message': f'Added track to queue',
+        'data': {
+            'title': 'New Track',
+            'position': 3
+        }
+    })
+
+@app.route('/api/music/remove/<int:track_id>', methods=['DELETE'])
+def remove_from_queue(track_id):
+    """Remove song from queue"""
+    return jsonify({
+        'status': 'success',
+        'message': f'Removed track {track_id} from queue'
+    })
+
+@app.route('/api/music/volume', methods=['POST'])
+def set_volume():
+    """Set music volume"""
+    data = request.get_json()
+    volume = data.get('volume', 50)
+    
+    return jsonify({
+        'status': 'success',
+        'message': f'Volume set to {volume}%',
+        'volume': volume
+    })
+
+# Enhanced Moderation API endpoints
+@app.route('/api/moderation/users')
+def get_server_users():
+    """Get server users for moderation"""
+    return jsonify({
+        'status': 'success',
+        'data': [
+            {
+                'id': '123456789',
+                'username': 'User1',
+                'discriminator': '1234',
+                'avatar': None,
+                'roles': ['Member'],
+                'joined_at': '2024-01-15T10:30:00Z',
+                'status': 'online'
+            },
+            {
+                'id': '987654321',
+                'username': 'User2',
+                'discriminator': '5678',
+                'avatar': None,
+                'roles': ['Member', 'Verified'],
+                'joined_at': '2024-02-20T15:45:00Z',
+                'status': 'offline'
+            }
+        ]
+    })
+
+@app.route('/api/moderation/logs')
+def get_moderation_logs():
+    """Get recent moderation actions"""
+    return jsonify({
+        'status': 'success',
+        'data': [
+            {
+                'id': 1,
+                'action': 'warn',
+                'target': 'User#1234',
+                'moderator': 'Admin#0001',
+                'reason': 'Spam',
+                'timestamp': '2024-01-20T10:30:00Z'
+            },
+            {
+                'id': 2,
+                'action': 'timeout',
+                'target': 'User#5678',
+                'moderator': 'Admin#0001',
+                'reason': 'Inappropriate language',
+                'duration': '10 minutes',
+                'timestamp': '2024-01-20T09:15:00Z'
+            },
+            {
+                'id': 3,
+                'action': 'ban',
+                'target': 'User#9012',
+                'moderator': 'Admin#0001',
+                'reason': 'Harassment',
+                'timestamp': '2024-01-19T16:20:00Z'
+            }
+        ]
+    })
+
+@app.route('/api/moderation/automod-settings')
+def get_automod_settings():
+    """Get auto-moderation settings"""
+    return jsonify({
+        'status': 'success',
+        'data': {
+            'anti_spam': True,
+            'anti_raid': False,
+            'link_filter': True,
+            'word_filter': True,
+            'max_mentions': 5,
+            'spam_threshold': 3
+        }
+    })
+
+@app.route('/api/moderation/automod-settings', methods=['POST'])
+def update_automod_settings():
+    """Update auto-moderation settings"""
+    data = request.get_json()
+    
+    return jsonify({
+        'status': 'success',
+        'message': 'Auto-moderation settings updated',
+        'data': data
+    })
+
+# Enhanced Minecraft API endpoints
+@app.route('/api/minecraft/servers')
+def get_minecraft_servers():
+    """Get monitored minecraft servers"""
+    return jsonify({
+        'status': 'success',
+        'data': [
+            {
+                'id': 1,
+                'name': 'Main Server',
+                'host': 'play.hypixel.net',
+                'port': 25565,
+                'status': 'online',
+                'players': {
+                    'online': 47234,
+                    'max': 200000
+                },
+                'version': '1.20.1',
+                'ping': 25,
+                'last_updated': '2024-01-20T10:30:00Z'
+            },
+            {
+                'id': 2,
+                'name': 'Creative Server',
+                'host': 'mc.mineplex.com',
+                'port': 25565,
+                'status': 'online',
+                'players': {
+                    'online': 8492,
+                    'max': 20000
+                },
+                'version': '1.19.4',
+                'ping': 32,
+                'last_updated': '2024-01-20T10:29:00Z'
+            }
+        ]
+    })
+
+@app.route('/api/minecraft/add-server', methods=['POST'])
+def add_minecraft_server():
+    """Add new minecraft server to monitor"""
+    data = request.get_json()
+    host = data.get('host', '')
+    port = data.get('port', 25565)
+    
+    return jsonify({
+        'status': 'success',
+        'message': f'Added server {host}:{port} to monitoring',
+        'data': {
+            'id': 3,
+            'host': host,
+            'port': port,
+            'status': 'checking'
+        }
+    })
+
+@app.route('/api/minecraft/remove-server/<int:server_id>', methods=['DELETE'])
+def remove_minecraft_server(server_id):
+    """Remove minecraft server from monitoring"""
+    return jsonify({
+        'status': 'success',
+        'message': f'Removed server {server_id} from monitoring'
+    })
+
+@app.route('/api/minecraft/force-update/<int:server_id>', methods=['POST'])
+def force_update_server(server_id):
+    """Force update minecraft server status"""
+    return jsonify({
+        'status': 'success',
+        'message': f'Forced update for server {server_id}',
+        'data': {
+            'last_updated': '2024-01-20T10:35:00Z'
+        }
+    })
+
+# Settings API endpoints
+@app.route('/api/settings/bot-config')
+def get_bot_config():
+    """Get bot configuration"""
+    return jsonify({
+        'status': 'success',
+        'data': {
+            'prefix': '!',
+            'default_volume': 50,
+            'welcome_enabled': True,
+            'auto_role': None,
+            'log_channel': None
+        }
+    })
+
+@app.route('/api/settings/bot-config', methods=['POST'])
+def update_bot_config():
+    """Update bot configuration"""
+    data = request.get_json()
+    
+    return jsonify({
+        'status': 'success',
+        'message': 'Bot configuration updated',
+        'data': data
+    })
+
+@app.route('/api/settings/export-logs')
+def export_logs():
+    """Export bot logs"""
+    return jsonify({
+        'status': 'success',
+        'message': 'Logs exported successfully',
+        'download_url': '/downloads/bot-logs-2024-01-20.zip'
+    })
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

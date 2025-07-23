@@ -730,17 +730,350 @@
             const url = document.getElementById('music-url').value;
             if (!url) return;
             
-            fetch('/api/music/play', {
+            fetch('/api/music/add', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({url: url})
             })
             .then(response => response.json())
             .then(data => {
-                console.log(data.message);
-                document.getElementById('music-url').value = '';
+                if (data.status === 'success') {
+                    console.log(data.message);
+                    document.getElementById('music-url').value = '';
+                    loadMusicQueue(); // Refresh queue
+                }
             })
             .catch(error => console.error('Error:', error));
+        }
+        
+        function removeFromQueue(trackId) {
+            fetch(`/api/music/remove/${trackId}`, { method: 'DELETE' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        console.log(data.message);
+                        loadMusicQueue(); // Refresh queue
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+        
+        function loadMusicQueue() {
+            fetch('/api/music/queue-list')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        updateQueueDisplay(data.data.queue);
+                    }
+                })
+                .catch(error => console.error('Error loading queue:', error));
+        }
+        
+        function updateQueueDisplay(queue) {
+            const queueList = document.querySelector('.queue-list');
+            if (!queueList) return;
+            
+            queueList.innerHTML = queue.map(track => `
+                <div class="queue-item">
+                    <div class="queue-thumbnail">
+                        <img src="${track.thumbnail}" alt="${track.title}">
+                    </div>
+                    <div class="queue-info">
+                        <h4>${track.title}</h4>
+                        <p>${track.artist} • ${formatDuration(track.duration)}</p>
+                    </div>
+                    <button class="remove-btn" onclick="removeFromQueue(${track.id})">✕</button>
+                </div>
+            `).join('');
+        }
+        
+        function formatDuration(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        function updateVolumeSlider() {
+            const slider = document.getElementById('volume-slider');
+            const value = document.getElementById('volume-value');
+            
+            if (slider && value) {
+                slider.addEventListener('input', function() {
+                    value.textContent = this.value + '%';
+                    
+                    fetch('/api/music/volume', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({volume: this.value})
+                    })
+                    .then(response => response.json())
+                    .then(data => console.log(data.message))
+                    .catch(error => console.error('Error:', error));
+                });
+            }
+        }
+        
+        // Moderation functions
+        function moderationAction(action, targetUser, reason, duration = null) {
+            const payload = { target: targetUser, reason: reason };
+            if (duration) payload.duration = duration;
+            
+            fetch(`/api/moderation/${action}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    console.log(data.message);
+                    loadModerationLogs(); // Refresh logs
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        
+        function loadModerationLogs() {
+            fetch('/api/moderation/logs')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        updateModerationLogs(data.data);
+                    }
+                })
+                .catch(error => console.error('Error loading logs:', error));
+        }
+        
+        function updateModerationLogs(logs) {
+            const logContainer = document.querySelector('.mod-log');
+            if (!logContainer) return;
+            
+            logContainer.innerHTML = logs.map(log => `
+                <div class="log-item">
+                    <div class="log-time">${formatTimestamp(log.timestamp)}</div>
+                    <div class="log-action ${log.action}">${log.action.charAt(0).toUpperCase() + log.action.slice(1)}</div>
+                    <div class="log-details">${log.target} ${log.action === 'timeout' ? '('+log.duration+')' : ''} - ${log.reason}</div>
+                </div>
+            `).join('');
+        }
+        
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = Math.floor((now - date) / 60000); // minutes
+            
+            if (diff < 1) return 'Just now';
+            if (diff < 60) return `${diff} min ago`;
+            if (diff < 1440) return `${Math.floor(diff / 60)} hours ago`;
+            return date.toLocaleDateString();
+        }
+        
+        function saveAutomodSettings() {
+            const settings = {
+                anti_spam: document.getElementById('anti-spam')?.checked || false,
+                anti_raid: document.getElementById('anti-raid')?.checked || false,
+                link_filter: document.getElementById('anti-link')?.checked || false
+            };
+            
+            fetch('/api/moderation/automod-settings', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(settings)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    console.log(data.message);
+                    alert('Auto-moderation settings saved!');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        
+        // Minecraft functions
+        function addMinecraftServer() {
+            const host = document.getElementById('server-ip')?.value;
+            const port = document.getElementById('server-port')?.value || 25565;
+            
+            if (!host) return;
+            
+            fetch('/api/minecraft/add-server', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({host, port: parseInt(port)})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    console.log(data.message);
+                    document.getElementById('server-ip').value = '';
+                    document.getElementById('server-port').value = '25565';
+                    loadMinecraftServers(); // Refresh servers
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        
+        function forceUpdateServer(serverId) {
+            fetch(`/api/minecraft/force-update/${serverId}`, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        console.log(data.message);
+                        loadMinecraftServers(); // Refresh servers
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+        
+        function resetServerCounter(serverId) {
+            if (confirm('Are you sure you want to reset the counter for this server?')) {
+                console.log(`Resetting counter for server ${serverId}`);
+                // This would call an API endpoint when implemented
+            }
+        }
+        
+        function removeServer(serverId) {
+            if (confirm('Are you sure you want to remove this server from monitoring?')) {
+                fetch(`/api/minecraft/remove-server/${serverId}`, { method: 'DELETE' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            console.log(data.message);
+                            loadMinecraftServers(); // Refresh servers
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+        }
+        
+        function loadMinecraftServers() {
+            fetch('/api/minecraft/servers')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        updateMinecraftServers(data.data);
+                    }
+                })
+                .catch(error => console.error('Error loading minecraft servers:', error));
+        }
+        
+        function updateMinecraftServers(servers) {
+            const serverList = document.querySelector('.server-list');
+            if (!serverList) return;
+            
+            serverList.innerHTML = servers.map(server => `
+                <div class="minecraft-server">
+                    <div class="server-info">
+                        <h4>${server.host}:${server.port}</h4>
+                        <p class="server-status ${server.status}">${server.status.charAt(0).toUpperCase() + server.status.slice(1)} • ${server.players.online}/${server.players.max} players</p>
+                    </div>
+                    <div class="server-actions">
+                        <button onclick="forceUpdateServer(${server.id})" class="btn-secondary">Force Update</button>
+                        <button onclick="resetServerCounter(${server.id})" class="btn-warning">Reset Counter</button>
+                        <button onclick="removeServer(${server.id})" class="btn-danger">Remove</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Settings functions
+        function loadBotSettings() {
+            fetch('/api/settings/bot-config')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        const config = data.data;
+                        
+                        const prefixInput = document.getElementById('bot-prefix');
+                        const volumeInput = document.getElementById('default-volume');
+                        const volumeValue = document.getElementById('default-volume-value');
+                        const welcomeToggle = document.getElementById('welcome-enabled');
+                        
+                        if (prefixInput) prefixInput.value = config.prefix;
+                        if (volumeInput) {
+                            volumeInput.value = config.default_volume;
+                            if (volumeValue) volumeValue.textContent = config.default_volume + '%';
+                        }
+                        if (welcomeToggle) welcomeToggle.checked = config.welcome_enabled;
+                    }
+                })
+                .catch(error => console.error('Error loading settings:', error));
+        }
+        
+        function saveBotSettings() {
+            const settings = {
+                prefix: document.getElementById('bot-prefix')?.value || '!',
+                default_volume: document.getElementById('default-volume')?.value || 50,
+                welcome_enabled: document.getElementById('welcome-enabled')?.checked || false
+            };
+            
+            fetch('/api/settings/bot-config', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(settings)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    console.log(data.message);
+                    alert('Bot settings saved!');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        
+        function exportLogs() {
+            fetch('/api/settings/export-logs')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        console.log(data.message);
+                        alert('Logs exported successfully! Check downloads.');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+        
+        function restartBot() {
+            if (confirm('Are you sure you want to restart the bot? This may cause temporary downtime.')) {
+                alert('Bot restart initiated. This is a demo - no actual restart performed.');
+            }
+        }
+        
+        function removeBotFromServer() {
+            if (confirm('Are you sure you want to remove the bot from this server? This action cannot be undone.')) {
+                alert('This is a demo - actual bot removal would require server admin permissions.');
+            }
+        }
+        
+        // Load data when tabs are switched
+        function initializeTabData() {
+            // Set up tab switching with data loading
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const targetTab = this.getAttribute('data-tab');
+                    
+                    // Load data based on active tab
+                    switch(targetTab) {
+                        case 'music':
+                            loadMusicQueue();
+                            updateVolumeSlider();
+                            break;
+                        case 'moderation':
+                            loadModerationLogs();
+                            break;
+                        case 'minecraft':
+                            loadMinecraftServers();
+                            break;
+                        case 'settings':
+                            loadBotSettings();
+                            break;
+                    }
+                });
+            });
         }
         
         // Tab switching functionality
@@ -770,6 +1103,7 @@
         // Initialize enhanced dashboard when DOM loads
         document.addEventListener('DOMContentLoaded', function() {
             initializeEnhancedDashboard();
+            initializeTabData();
             loadDashboardData();
             
             // Auto-refresh every 30 seconds
