@@ -63,68 +63,139 @@
                 </div>
             </header>
 
+        <!-- Quick Stats Overview -->
+        <div class="quick-stats">
+            <div class="quick-stat">
+                <div class="quick-stat-icon">🟢</div>
+                <div class="quick-stat-content">
+                    <div class="quick-stat-label">Bot Status</div>
+                    <div class="quick-stat-value" id="quickBotStatus">Online</div>
+                </div>
+            </div>
+            <div class="quick-stat">
+                <div class="quick-stat-icon">🏠</div>
+                <div class="quick-stat-content">
+                    <div class="quick-stat-label">Total Servers</div>
+                    <div class="quick-stat-value" id="quickTotalServers">0</div>
+                </div>
+            </div>
+            <div class="quick-stat">
+                <div class="quick-stat-icon">👥</div>
+                <div class="quick-stat-content">
+                    <div class="quick-stat-label">Total Users</div>
+                    <div class="quick-stat-value" id="quickTotalUsers">0</div>
+                </div>
+            </div>
+            <div class="quick-stat">
+                <div class="quick-stat-icon">⚡</div>
+                <div class="quick-stat-content">
+                    <div class="quick-stat-label">Commands Today</div>
+                    <div class="quick-stat-value" id="quickCommandsToday">0</div>
+                </div>
+            </div>
+        </div>
+
         <div class="stats-grid">
-            <!-- Main Statistics Cards -->
-            <div class="stat-card primary">
+            <!-- Enhanced Gauge Cards -->
+            <div class="stat-card primary enhanced-gauge">
                 <div class="stat-header">
-                    <h3>⚡ Minecraft Counter Updates</h3>
+                    <h3>⚡ Minecraft Updates</h3>
+                    <div class="trend-indicator positive" id="minecraftTrend">↗ +12%</div>
                 </div>
                 <div class="stat-content">
                     <div class="gauge-container">
-                        <canvas id="minecraftCounterGauge" width="200" height="200"></canvas>
+                        <canvas id="minecraftCounterGauge" width="150" height="150"></canvas>
+                        <div class="gauge-center">
+                            <div class="gauge-value" id="minecraftCounterValue">0</div>
+                            <div class="gauge-max" id="minecraftCounterMax">/1000</div>
+                        </div>
                     </div>
-                    <div class="stat-number" id="minecraftCounterValue">0</div>
-                    <div class="stat-label">Total Updates</div>
+                    <div class="gauge-stats">
+                        <div class="gauge-stat">
+                            <span class="gauge-stat-label">Today</span>
+                            <span class="gauge-stat-value" id="minecraftToday">0</span>
+                        </div>
+                        <div class="gauge-stat">
+                            <span class="gauge-stat-label">Peak Hour</span>
+                            <span class="gauge-stat-value" id="minecraftPeak">0</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="stat-card secondary">
+            <div class="stat-card secondary enhanced-gauge">
                 <div class="stat-header">
-                    <h3>📊 Bot Usage</h3>
+                    <h3>📊 Command Usage</h3>
+                    <div class="trend-indicator positive" id="commandTrend">↗ +8%</div>
                 </div>
                 <div class="stat-content">
                     <div class="gauge-container">
-                        <canvas id="botUsageGauge" width="200" height="200"></canvas>
+                        <canvas id="botUsageGauge" width="150" height="150"></canvas>
+                        <div class="gauge-center">
+                            <div class="gauge-value" id="botUsageValue">0</div>
+                            <div class="gauge-max" id="botUsageMax">/500</div>
+                        </div>
                     </div>
-                    <div class="stat-number" id="botUsageValue">0</div>
-                    <div class="stat-label">Commands Used</div>
+                    <div class="gauge-stats">
+                        <div class="gauge-stat">
+                            <span class="gauge-stat-label">This Hour</span>
+                            <span class="gauge-stat-value" id="commandsHour">0</span>
+                        </div>
+                        <div class="gauge-stat">
+                            <span class="gauge-stat-label">Most Used</span>
+                            <span class="gauge-stat-value" id="topCommand">play</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="stat-card success">
+            <div class="stat-card success enhanced-gauge">
                 <div class="stat-header">
-                    <h3>⏱️ Uptime</h3>
+                    <h3>⏱️ System Uptime</h3>
+                    <div class="trend-indicator stable" id="uptimeTrend">→ 99.9%</div>
                 </div>
                 <div class="stat-content">
                     <div class="gauge-container">
-                        <canvas id="uptimeGauge" width="200" height="200"></canvas>
+                        <canvas id="uptimeGauge" width="150" height="150"></canvas>
+                        <div class="gauge-center">
+                            <div class="gauge-value" id="uptimeValue">0%</div>
+                            <div class="gauge-max">uptime</div>
+                        </div>
                     </div>
-                    <div class="stat-number" id="uptimeValue">0%</div>
-                    <div class="stat-label">Availability</div>
+                    <div class="gauge-stats">
+                        <div class="gauge-stat">
+                            <span class="gauge-stat-label">Session</span>
+                            <span class="gauge-stat-value" id="sessionTime">0h</span>
+                        </div>
+                        <div class="gauge-stat">
+                            <span class="gauge-stat-label">Last Restart</span>
+                            <span class="gauge-stat-value" id="lastRestart">Never</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="stat-card warning">
+            <div class="stat-card warning enhanced-gauge">
                 <div class="stat-header">
-                    <h3>🌐 Server Status</h3>
+                    <h3>🎮 Active Players</h3>
+                    <div class="trend-indicator positive" id="playerTrend">↗ +5</div>
                 </div>
                 <div class="stat-content">
-                    <div class="server-stats">
-                        <div class="server-stat">
-                            <span class="stat-label">Servers Monitored</span>
-                            <span class="stat-value" id="serversMonitored">0</span>
+                    <div class="gauge-container">
+                        <canvas id="playersGauge" width="150" height="150"></canvas>
+                        <div class="gauge-center">
+                            <div class="gauge-value" id="playersValue">0</div>
+                            <div class="gauge-max" id="playersMax">/100</div>
                         </div>
-                        <div class="server-stat">
-                            <span class="stat-label">Success Rate</span>
-                            <span class="stat-value" id="successRate">0%</span>
+                    </div>
+                    <div class="gauge-stats">
+                        <div class="gauge-stat">
+                            <span class="gauge-stat-label">Peak Today</span>
+                            <span class="gauge-stat-value" id="peakPlayers">0</span>
                         </div>
-                        <div class="server-stat">
-                            <span class="stat-label">Avg Response</span>
-                            <span class="stat-value" id="avgResponse">0ms</span>
-                        </div>
-                        <div class="server-stat">
-                            <span class="stat-label">Max Players Seen</span>
-                            <span class="stat-value" id="maxPlayers">0</span>
+                        <div class="gauge-stat">
+                            <span class="gauge-stat-label">Avg/Day</span>
+                            <span class="gauge-stat-value" id="avgPlayers">0</span>
                         </div>
                     </div>
                 </div>
@@ -134,19 +205,121 @@
             <div class="chart-card">
                 <div class="stat-header">
                     <h3>📈 Command Usage Breakdown</h3>
+                    <div class="chart-controls">
+                        <select id="commandPeriod" onchange="updateCommandChart()">
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="chart-container">
                     <canvas id="commandUsageChart"></canvas>
                 </div>
             </div>
 
-            <!-- Minecraft Server History Chart -->
-            <div class="chart-card wide">
+            <!-- Activity Timeline Chart -->
+            <div class="chart-card">
                 <div class="stat-header">
-                    <h3>🎮 Minecraft Server History (24h)</h3>
+                    <h3>📊 Activity Timeline (24h)</h3>
+                    <div class="chart-controls">
+                        <button class="chart-btn active" onclick="setActivityView('hourly')">Hourly</button>
+                        <button class="chart-btn" onclick="setActivityView('daily')">Daily</button>
+                    </div>
                 </div>
                 <div class="chart-container">
-                    <canvas id="minecraftHistoryChart"></canvas>
+                    <canvas id="activityTimelineChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Minecraft Server Status Dashboard -->
+            <div class="chart-card wide">
+                <div class="stat-header">
+                    <h3>🎮 Minecraft Server Dashboard</h3>
+                    <div class="chart-controls">
+                        <button class="chart-btn" onclick="refreshMinecraftData()">Refresh</button>
+                        <button class="chart-btn" onclick="exportMinecraftData()">Export</button>
+                    </div>
+                </div>
+                <div class="minecraft-dashboard">
+                    <div class="minecraft-chart-section">
+                        <canvas id="minecraftHistoryChart"></canvas>
+                    </div>
+                    <div class="minecraft-stats-grid">
+                        <div class="minecraft-stat">
+                            <div class="minecraft-stat-icon">🏠</div>
+                            <div class="minecraft-stat-content">
+                                <div class="minecraft-stat-value" id="totalServers">0</div>
+                                <div class="minecraft-stat-label">Servers</div>
+                            </div>
+                        </div>
+                        <div class="minecraft-stat">
+                            <div class="minecraft-stat-icon">🟢</div>
+                            <div class="minecraft-stat-content">
+                                <div class="minecraft-stat-value" id="onlineServers">0</div>
+                                <div class="minecraft-stat-label">Online</div>
+                            </div>
+                        </div>
+                        <div class="minecraft-stat">
+                            <div class="minecraft-stat-icon">⚡</div>
+                            <div class="minecraft-stat-content">
+                                <div class="minecraft-stat-value" id="avgLatency">0ms</div>
+                                <div class="minecraft-stat-label">Avg Latency</div>
+                            </div>
+                        </div>
+                        <div class="minecraft-stat">
+                            <div class="minecraft-stat-icon">📈</div>
+                            <div class="minecraft-stat-content">
+                                <div class="minecraft-stat-value" id="totalPlayers">0</div>
+                                <div class="minecraft-stat-label">Total Players</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Metrics -->
+            <div class="chart-card">
+                <div class="stat-header">
+                    <h3>⚡ Performance Metrics</h3>
+                </div>
+                <div class="performance-metrics">
+                    <div class="metric-item">
+                        <div class="metric-bar">
+                            <div class="metric-fill cpu" style="width: 45%"></div>
+                        </div>
+                        <div class="metric-info">
+                            <span class="metric-label">CPU Usage</span>
+                            <span class="metric-value" id="cpuUsage">45%</span>
+                        </div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-bar">
+                            <div class="metric-fill memory" style="width: 67%"></div>
+                        </div>
+                        <div class="metric-info">
+                            <span class="metric-label">Memory Usage</span>
+                            <span class="metric-value" id="memoryUsage">67%</span>
+                        </div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-bar">
+                            <div class="metric-fill network" style="width: 23%"></div>
+                        </div>
+                        <div class="metric-info">
+                            <span class="metric-label">Network Load</span>
+                            <span class="metric-value" id="networkUsage">23%</span>
+                        </div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-bar">
+                            <div class="metric-fill latency" style="width: 15%"></div>
+                        </div>
+                        <div class="metric-info">
+                            <span class="metric-label">Bot Latency</span>
+                            <span class="metric-value" id="botLatency">15ms</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 

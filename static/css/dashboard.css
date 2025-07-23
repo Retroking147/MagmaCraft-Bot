@@ -237,6 +237,61 @@ body {
     font-size: 14px;
 }
 
+/* Quick Stats Bar */
+.quick-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.quick-stat {
+    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(88, 101, 242, 0.1) 100%);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+}
+
+.quick-stat:hover {
+    transform: translateY(-2px);
+    border-color: var(--discord-blurple);
+    box-shadow: 0 4px 20px rgba(88, 101, 242, 0.2);
+}
+
+.quick-stat-icon {
+    font-size: 24px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(88, 101, 242, 0.2);
+    border-radius: 12px;
+}
+
+.quick-stat-content {
+    flex: 1;
+}
+
+.quick-stat-label {
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+
+.quick-stat-value {
+    color: var(--text-primary);
+    font-size: 18px;
+    font-weight: 700;
+}
+
 /* Stats Grid & Feature Grid */
 .stats-grid, .feature-grid {
     display: grid;
@@ -809,6 +864,257 @@ body {
     color: var(--text-secondary);
     font-size: 14px;
     font-weight: 500;
+}
+
+/* Enhanced Gauge Cards */
+.enhanced-gauge .stat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.trend-indicator {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.trend-indicator.positive {
+    color: var(--discord-green);
+    background: rgba(87, 242, 135, 0.1);
+}
+
+.trend-indicator.negative {
+    color: var(--discord-red);
+    background: rgba(237, 66, 69, 0.1);
+}
+
+.trend-indicator.stable {
+    color: var(--discord-yellow);
+    background: rgba(254, 231, 92, 0.1);
+}
+
+.gauge-container {
+    position: relative;
+    margin: 0 auto 16px;
+    width: 150px;
+    height: 150px;
+}
+
+.gauge-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    margin-top: 10px;
+}
+
+.gauge-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+.gauge-max {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.gauge-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.gauge-stat {
+    text-align: center;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+}
+
+.gauge-stat-label {
+    display: block;
+    font-size: 10px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+
+.gauge-stat-value {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Chart Controls */
+.chart-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.chart-btn {
+    background: rgba(88, 101, 242, 0.1);
+    border: 1px solid var(--card-border);
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.chart-btn:hover,
+.chart-btn.active {
+    background: var(--discord-blurple);
+    color: white;
+    border-color: var(--discord-blurple);
+}
+
+.chart-controls select {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    color: var(--text-primary);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+/* Minecraft Dashboard */
+.minecraft-dashboard {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    padding: 20px;
+}
+
+.minecraft-chart-section {
+    height: 300px;
+}
+
+.minecraft-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.minecraft-stat {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.minecraft-stat:hover {
+    background: rgba(88, 101, 242, 0.1);
+}
+
+.minecraft-stat-icon {
+    font-size: 20px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(88, 101, 242, 0.2);
+    border-radius: 8px;
+}
+
+.minecraft-stat-content {
+    flex: 1;
+}
+
+.minecraft-stat-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+.minecraft-stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Performance Metrics */
+.performance-metrics {
+    padding: 20px;
+}
+
+.metric-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.metric-item:last-child {
+    margin-bottom: 0;
+}
+
+.metric-bar {
+    flex: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.metric-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.metric-fill.cpu {
+    background: linear-gradient(90deg, var(--discord-green), var(--discord-yellow));
+}
+
+.metric-fill.memory {
+    background: linear-gradient(90deg, var(--discord-blurple), var(--discord-orange));
+}
+
+.metric-fill.network {
+    background: linear-gradient(90deg, var(--discord-yellow), var(--discord-green));
+}
+
+.metric-fill.latency {
+    background: linear-gradient(90deg, var(--discord-green), var(--discord-blurple));
+}
+
+.metric-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-width: 140px;
+}
+
+.metric-label {
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.metric-value {
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
 }
 
 /* Server Stats */
