@@ -1106,8 +1106,8 @@
             initializeTabData();
             loadDashboardData();
             
-            // Auto-refresh every 30 seconds
-            setInterval(loadDashboardData, 30000);
+            // Auto-refresh every 2 minutes to prevent API spam
+            setInterval(loadDashboardData, 120000);
         });
         
         function initializeEnhancedDashboard() {
